@@ -2,7 +2,7 @@
  * @file server.js
  * @description This file sets up the main Node.js Express server, integrates Socket.IO for real-time communication,
  * and initializes Firebase Firestore for data persistence. It also handles static file serving
- * and basic Socket.IO events for the AirChat application, now including WebRTC signaling.
+ * and basic Socket.IO events for the AirChat application, now including WebRTC signaling and speaking status.
  */
 
 // Import necessary modules
@@ -511,6 +511,24 @@ io.on('connection', (socket) => {
         } else {
             console.warn(`Target user ${targetUserId} not found for WebRTC ICE candidate.`);
         }
+    });
+
+    /**
+     * Handles speaking status updates from clients.
+     * @param {Object} data - Contains userId and isSpeaking (boolean).
+     */
+    socket.on('speaking', (data) => {
+        const { userId, isSpeaking } = data;
+        const user = activeUsers[socket.id];
+
+        if (!user || user.userId !== userId || !user.roomId) {
+            // Ensure the speaking status is for the current user and they are in a room
+            return;
+        }
+
+        console.log(`User ${userId} in room ${user.roomId} is speaking: ${isSpeaking}`);
+        // Broadcast speaking status to all other clients in the same room
+        socket.to(user.roomId).emit('speakingStatus', { userId, isSpeaking });
     });
 
     // Add more Socket.IO event listeners as needed for other features
