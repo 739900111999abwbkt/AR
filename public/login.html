@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - AirChat</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to your global styles -->
+    <link rel="stylesheet" href="./css/style.css" />
+    <style>
+        /* Specific styles for the login container, complementing style.css */
+        .login-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .login-container h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 1.5rem;
+        }
+        .login-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .login-container .button-link {
+            width: 100%; /* Make button full width */
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div class="login-container">
+        <h1>تسجيل الدخول</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="البريد الإلكتروني" required />
+            <input type="password" id="password" placeholder="كلمة المرور" required />
+            <button type="submit" class="button">دخول</button>
+        </form>
+        <p class="text-gray-600 dark:text-gray-400 mt-4">
+            ليس لديك حساب؟ <a href="register.html" class="text-blue-600 hover:underline">سجل الآن</a>
+        </p>
+    </div>
+
+    <script type="module">
+        // Import custom alert utility
+        // Changed path to absolute from root to ensure correct module resolution
+        import { showCustomAlert } from '/js/utils.js'; 
+
+        document.getElementById("loginForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch('/api/auth/login', { // Use relative path for API
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Login successful:', data);
+                    // Store token and user info (e.g., ID, username) in localStorage
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("userId", data.user.id);
+                    localStorage.setItem("username", data.user.username);
+                    localStorage.setItem("userEmail", data.user.email);
+                    localStorage.setItem("userAvatar", data.user.avatar || 'https://placehold.co/50x50/cccccc/333333?text=User');
+                    localStorage.setItem("userRole", data.user.role || 'user');
+                    localStorage.setItem("userXP", data.user.xp || 0);
+                    localStorage.setItem("userGiftsReceived", data.user.giftsReceived || 0);
+                    localStorage.setItem("userVipLevel", data.user.vipLevel || 0);
+                    localStorage.setItem("userBio", data.user.bio || 'لا توجد نبذة');
+                    localStorage.setItem("userInterests", JSON.stringify(data.user.interests || []));
+
+
+                    showCustomAlert('تم تسجيل الدخول بنجاح!', 'success');
+                    // Redirect to the home page or rooms page after a short delay
+                    setTimeout(() => {
+                        window.location.href = "rooms.html"; // Redirect to rooms page
+                    }, 1000);
+
+                } else {
+                    console.error('Login failed:', data.error);
+                    showCustomAlert('فشل تسجيل الدخول: ' + (data.error || 'خطأ غير معروف'), 'error');
+                }
+            } catch (error) {
+                console.error('Network error or unexpected issue during login:', error);
+                showCustomAlert('حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
