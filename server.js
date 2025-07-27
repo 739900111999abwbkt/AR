@@ -2,7 +2,7 @@
  * @file server.js
  * @description This file sets up the main Node.js Express server, integrates Socket.IO for real-time communication,
  * and initializes Firebase Firestore for data persistence. It also handles static file serving
- * and basic Socket.IO events for the AirChat application.
+ * and basic Socket.IO events for the AirChat application, now including WebRTC signaling.
  */
 
 // Import necessary modules
@@ -19,6 +19,7 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged }
 // We provide fallback values for local development if they are not defined.
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-airchat-app';
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+// Corrected assignment for initialAuthToken to use the global __initial_auth_token
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 // --- Firebase Initialization ---
@@ -458,6 +459,57 @@ io.on('connection', (socket) => {
                 break;
             default:
                 sendCustomAlert(socket, 'Invalid moderation action.', 'error');
+        }
+    });
+
+    /**
+     * Handles WebRTC offer signaling.
+     * Forwards the offer from sender to target.
+     * @param {Object} data - Contains targetUserId, offer, senderId.
+     */
+    socket.on('webrtc-offer', (data) => {
+        const { targetUserId, offer, senderId } = data;
+        const targetSocket = Object.values(activeUsers).find(u => u.userId === targetUserId)?.socketId;
+
+        if (targetSocket) {
+            console.log(`Forwarding WebRTC offer from ${senderId} to ${targetUserId}`);
+            io.to(targetSocket).emit('webrtc-offer', { senderId, offer });
+        } else {
+            console.warn(`Target user ${targetUserId} not found for WebRTC offer.`);
+        }
+    });
+
+    /**
+     * Handles WebRTC answer signaling.
+     * Forwards the answer from sender to target.
+     * @param {Object} data - Contains targetUserId, answer, senderId.
+     */
+    socket.on('webrtc-answer', (data) => {
+        const { targetUserId, answer, senderId } = data;
+        const targetSocket = Object.values(activeUsers).find(u => u.userId === targetUserId)?.socketId;
+
+        if (targetSocket) {
+            console.log(`Forwarding WebRTC answer from ${senderId} to ${targetUserId}`);
+            io.to(targetSocket).emit('webrtc-answer', { senderId, answer });
+        } else {
+            console.warn(`Target user ${targetUserId} not found for WebRTC answer.`);
+        }
+    });
+
+    /**
+     * Handles WebRTC ICE candidate signaling.
+     * Forwards the candidate from sender to target.
+     * @param {Object} data - Contains targetUserId, candidate, senderId.
+     */
+    socket.on('webrtc-ice-candidate', (data) => {
+        const { targetUserId, candidate, senderId } = data;
+        const targetSocket = Object.values(activeUsers).find(u => u.userId === targetUserId)?.socketId;
+
+        if (targetSocket) {
+            console.log(`Forwarding WebRTC ICE candidate from ${senderId} to ${targetUserId}`);
+            io.to(targetSocket).emit('webrtc-ice-candidate', { senderId, candidate });
+        } else {
+            console.warn(`Target user ${targetUserId} not found for WebRTC ICE candidate.`);
         }
     });
 
