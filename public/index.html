@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirChat - الرئيسية</title>
+    <!-- Tailwind CSS CDN for basic styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        /* Custom styles for the landing page */
+        body {
+            font-family: 'Inter', sans-serif;
+            direction: rtl; /* Right-to-left for Arabic */
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3.5rem; /* Larger heading */
+            font-weight: 700; /* Bold font */
+            color: #4f46e5; /* Primary purple color */
+            margin-bottom: 2.5rem; /* Space below heading */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+        }
+        .button-container {
+            display: flex;
+            gap: 1.5rem; /* Space between buttons */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: center;
+        }
+        .button-link {
+            display: inline-block;
+            background-color: #4f46e5; /* Primary purple color */
+            color: white;
+            padding: 1.25rem 2.5rem; /* Larger padding for buttons */
+            border-radius: 1rem; /* More rounded corners */
+            font-size: 1.3rem; /* Larger font size */
+            font-weight: 600; /* Semi-bold font */
+            text-decoration: none; /* Remove underline */
+            transition: all 0.3s ease; /* Smooth transitions for hover effects */
+            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3); /* Soft shadow */
+        }
+        .button-link:hover {
+            background-color: #4338ca; /* Darker purple on hover */
+            transform: translateY(-3px) scale(1.02); /* Slight lift and scale effect */
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4); /* Enhanced shadow on hover */
+        }
+        .button-link:active {
+            transform: translateY(0); /* Reset on click */
+            box-shadow: 0 3px 8px rgba(79, 70, 229, 0.2); /* Smaller shadow on click */
+        }
+    </style>
+</head>
+<body>
+    <h1>مرحبًا بك في AirChat</h1>
+    <div class="button-container">
+        <a href="login.html" class="button-link">تسجيل الدخول</a>
+        <a href="register.html" class="button-link">التسجيل</a>
+        <a href="rooms.html" class="button-link">استعراض الغرف</a>
+    </div>
+</body>
+</html>
