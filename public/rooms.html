@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الغرف - AirChat</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to your global styles -->
+    <link rel="stylesheet" href="./css/style.css" />
+    <style>
+        /* Specific styles for the rooms list container, complementing style.css */
+        .rooms-list-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .rooms-list-container h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 1.5rem;
+        }
+        .rooms-list-container ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .rooms-list-container li {
+            background-color: #f9fafb;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .rooms-list-container li:hover {
+            background-color: #eef2ff;
+            color: #4f46e5;
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+        }
+        .rooms-list-container li a {
+            text-decoration: none;
+            color: inherit;
+            font-weight: 500;
+            flex-grow: 1;
+            text-align: right;
+        }
+        .rooms-list-container li span {
+            font-size: 0.9rem;
+            color: #999;
+            margin-right: 1rem; /* Space between room name and user count */
+        }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div class="rooms-list-container">
+        <h1>قائمة الغرف المتاحة</h1>
+        <ul id="room-list">
+            <!-- Rooms will be dynamically loaded here -->
+            <li class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition-all cursor-pointer dark:bg-gray-700 dark:hover:bg-gray-600">
+                <a href="room.html?id=room1" class="text-lg font-medium text-gray-800 dark:text-gray-200">غرفة عامة 1</a>
+                <span class="text-sm text-gray-500 dark:text-gray-400">👥 5/10</span>
+            </li>
+            <li class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition-all cursor-pointer dark:bg-gray-700 dark:hover:bg-gray-600">
+                <a href="room.html?id=room2" class="text-lg font-medium text-gray-800 dark:text-gray-200">غرفة الدردشة</a>
+                <span class="text-sm text-gray-500 dark:text-gray-400">👥 3/8</span>
+            </li>
+            <li class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition-all cursor-pointer dark:bg-gray-700 dark:hover:bg-gray-600">
+                <a href="room.html?id=room3" class="text-lg font-medium text-gray-800 dark:text-gray-200">غرفة الأصدقاء</a>
+                <span class="text-sm text-gray-500 dark:text-gray-400">👥 8/8</span>
+            </li>
+        </ul>
+        <button onclick="window.location.href='index.html'" class="button mt-4">العودة للرئيسية</button>
+    </div>
+
+    <script type="module">
+        // Import custom alert utility
+        import { showCustomAlert } from './js/utils.js';
+
+        // Function to dynamically load rooms (placeholder for now)
+        // In a real application, you would fetch rooms from your backend API
+        // and populate the list dynamically.
+        document.addEventListener('DOMContentLoaded', () => {
+            const roomList = document.getElementById('room-list');
+            // Example of how you might add rooms dynamically:
+            /*
+            fetch('/api/rooms')
+                .then(response => response.json())
+                .then(rooms => {
+                    roomList.innerHTML = ''; // Clear static content
+                    rooms.forEach(room => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition-all cursor-pointer dark:bg-gray-700 dark:hover:bg-gray-600';
+                        listItem.innerHTML = `
+                            <a href="room.html?id=${room.id}" class="text-lg font-medium text-gray-800 dark:text-gray-200">${room.name}</a>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">👥 ${room.currentUsers}/${room.maxUsers}</span>
+                        `;
+                        roomList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching rooms:', error);
+                    showCustomAlert('فشل تحميل الغرف. يرجى المحاولة لاحقًا.', 'error');
+                });
+            */
+        });
+    </script>
+</body>
+</html>
