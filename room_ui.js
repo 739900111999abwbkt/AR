@@ -2,7 +2,7 @@
  * @file room_ui.js
  * @description Manages all User Interface (UI) updates and interactions specific to the
  * voice chat room (room.html). This includes rendering mics, updating chat,
- * handling popups, and visual effects.
+ * handling popups, and visual effects. Now updated to handle WebRTC speaking indicators.
  */
 
 // Import necessary modules from main.js and utils.js
@@ -26,7 +26,7 @@ const toastNotification = document.getElementById('toast'); // Toast notificatio
 const achievementsBox = document.getElementById('achievements-box'); // Achievements notification
 
 // --- In-memory state for UI (should be synchronized with backend) ---
-let currentRoomUsers = {}; // Stores user objects in the current room
+export let currentRoomUsers = {}; // Stores user objects in the current room (exported for webrtc.js)
 let privateChatWindows = {}; // Stores references to open private chat windows
 let reactionScores = {}; // Stores reaction scores for users on mics
 let pinnedMicIndex = null; // Index of the currently pinned mic
@@ -35,8 +35,8 @@ let kickedUsers = {}; // Stores kicked user IDs (for current session display)
 
 // --- Constants / Configuration ---
 const DEFAULT_AVATAR = 'https://placehold.co/80x80/cccccc/333333?text=User';
-const DEFAULT_ROOM_BACKGROUND = 'https://placehold.co/1200x800/87CEEB/ffffff?text=AirChat+Room';
-const DEFAULT_ROOM_MUSIC = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+const DEFAULT_ROOM_BACKGROUND = '/assets/images/bg-room.jpg'; // Using local asset
+const DEFAULT_ROOM_MUSIC = '/assets/sounds/bg-music.mp3'; // Using local asset
 
 // --- Helper Functions ---
 
@@ -114,7 +114,8 @@ export function updateGiftCounterDisplay() {
  */
 export function updateUserBadgeNameDisplay() {
     if (userBadgeNameDisplay && currentUser) {
-        const levelBadge = getLevelBadge(calculateLevel(currentUser.xp || 0));
+        const level = calculateLevel(currentUser.xp || 0);
+        const levelBadge = getLevelBadge(level);
         const giftBadge = getUserBadgeByGifts(currentUser.giftsReceived || 0);
         userBadgeNameDisplay.innerHTML = `${levelBadge} ${currentUser.username} ${giftBadge}`;
     }
@@ -351,7 +352,6 @@ export function showUserInfoPopup(user) {
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>ID:</strong> ${user.userId} <button onclick="copyToClipboard('${user.userId}')" class="text-blue-500 hover:underline text-sm ml-2">نسخ</button></p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>النبذة:</strong> ${user.bio || 'لا توجد نبذة'}</p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>نقاط الخبرة (XP):</strong> ${user.xp || 0}</p>
-        <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>الهدايا المستلمة:</strong> ${user.giftsReceived || 0}</p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>المستوى:</strong> ${calculateLevel(user.xp || 0)} ${getLevelBadge(calculateLevel(user.xp || 0))}</p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>الرتبة:</strong> ${user.role || 'مستخدم عادي'}</p>
 
@@ -766,6 +766,32 @@ export function initializeRoomUI(roomState) {
     addChatMessage({ type: 'system', text: `مرحبًا بك في غرفة ${currentUser.roomId}!` });
 }
 
+/**
+ * Updates the speaking status of a user's mic circle.
+ * @param {string} userId - The ID of the user.
+ * @param {boolean} isSpeaking - True if the user is speaking, false otherwise.
+ */
+export function updateMicSpeakingStatus(userId, isSpeaking) {
+    const micElement = document.getElementById(`mic-${userId}`);
+    if (micElement) {
+        micElement.classList.toggle('active', isSpeaking);
+        // Play mic sound if local user starts speaking
+        if (userId === currentUser.id) {
+            // Use the existing micAudioElement from room.html for local feedback
+            const micAudio = document.getElementById('mic-audio');
+            if (micAudio) {
+                if (isSpeaking) {
+                    micAudio.play().catch(() => {});
+                } else {
+                    micAudio.pause();
+                    micAudio.currentTime = 0;
+                }
+            }
+        }
+    }
+}
+
+
 // --- Event Listeners for UI Updates (from main.js events) ---
 
 // Listen for room state updates (e.g., when joining a room)
@@ -834,6 +860,13 @@ document.addEventListener('userMuteStatus', (event) => {
     }
 });
 
+// Listen for speaking status updates from WebRTC module
+document.addEventListener('speakingStatusUpdate', (event) => {
+    const { userId, isSpeaking } = event.detail;
+    updateMicSpeakingStatus(userId, isSpeaking);
+});
+
+
 // --- Initial UI Setup on DOM Load ---
 document.addEventListener('DOMContentLoaded', () => {
     // Apply dark mode preference if saved
@@ -863,17 +896,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 60000); // Every minute
 
-    // Simulate mic glow (can be replaced by actual speaking detection)
-    setInterval(() => {
-        const mics = document.querySelectorAll('.mic-circle');
-        mics.forEach(m => m.classList.remove('active'));
-        if (mics.length > 0) {
-            const randomMic = mics[Math.floor(Math.random() * mics.length)];
-            if (randomMic) {
-                randomMic.classList.add('active');
-            }
-        }
-    }, 3000);
+    // Removed the simulated mic glow, now handled by WebRTC speaking status
+    // setInterval(() => {
+    //     const mics = document.querySelectorAll('.mic-circle');
+    //     mics.forEach(m => m.classList.remove('active'));
+    //     if (mics.length > 0) {
+    //         const randomMic = mics[Math.floor(Math.random() * mics.length)];
+    //         if (randomMic) {
+    //             randomMic.classList.add('active');
+    //         }
+    //     }
+    // }, 3000);
 
     // Simulate online user count (replace with actual count from backend)
     let simulatedUserCount = 1;
