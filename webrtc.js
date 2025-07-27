@@ -2,11 +2,13 @@
  * @file webrtc.js
  * @description Handles WebRTC logic for real-time voice communication in AirChat rooms.
  * This includes managing local media streams, peer connections, and signaling with the server.
+ * Now includes speaking detection and UI updates.
  */
 
 // Import necessary modules
 import { socket, currentUser, showCustomAlert } from '/js/main.js';
-import { createOrUpdateMicElement } from '/js/room_ui.js';
+import { currentRoomUsers } from '/js/room_ui.js'; // Import currentRoomUsers for peer connection setup
+import { updateMicSpeakingStatus } from '/js/room_ui.js'; // Import function to update mic UI
 
 // --- WebRTC Global Variables ---
 let localStream = null; // User's local audio stream
@@ -16,12 +18,25 @@ const configuration = {
     iceServers: [ // STUN servers for NAT traversal (essential for WebRTC)
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
     ]
 };
 
+// --- Audio Context for Speaking Detection ---
+let audioContext = null;
+let analyser = null;
+let microphone = null;
+let scriptProcessor = null;
+let isSpeaking = false;
+const speakingThreshold = 0.05; // Adjust this value based on microphone sensitivity and desired detection
+const speakingDebounceTime = 200; // Milliseconds to wait before changing speaking status
+let speakingTimeout = null;
+
 // --- UI Elements ---
 const toggleMicBtn = document.getElementById('toggle-mic-btn'); // Button to toggle local mic
-const micAudioElement = document.getElementById('mic-audio'); // Audio element for local mic feedback
+const micAudioElement = document.getElementById('mic-audio'); // Audio element for local mic feedback (muted)
 
 // --- Helper Functions ---
 
@@ -41,6 +56,10 @@ async function getLocalStream() {
             micAudioElement.muted = true; // Mute local feedback to avoid echo
         }
         showCustomAlert('تم الوصول إلى الميكروفون بنجاح.', 'success');
+
+        // Initialize audio context for speaking detection
+        setupAudioProcessing(stream);
+
         return stream;
     } catch (error) {
         console.error('Error accessing microphone:', error);
@@ -48,6 +67,104 @@ async function getLocalStream() {
         return null;
     }
 }
+
+/**
+ * Sets up AudioContext and AnalyserNode for local speaking detection.
+ * @param {MediaStream} stream - The local audio stream.
+ */
+function setupAudioProcessing(stream) {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (microphone) { // Disconnect previous microphone if exists
+        microphone.disconnect();
+    }
+    if (analyser) { // Disconnect previous analyser if exists
+        analyser.disconnect();
+    }
+    if (scriptProcessor) { // Disconnect previous scriptProcessor if exists
+        scriptProcessor.disconnect();
+    }
+
+    microphone = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256; // Fast Fourier Transform size
+    // ScriptProcessorNode is deprecated but widely supported. For modern apps, use AudioWorklet.
+    scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1); // Buffer size, input channels, output channels
+
+    microphone.connect(analyser);
+    analyser.connect(scriptProcessor);
+    scriptProcessor.connect(audioContext.destination); // Connect to destination to keep it alive
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    scriptProcessor.onaudioprocess = () => {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+        }
+        const average = sum / dataArray.length;
+        const volume = average / 255; // Normalize to 0-1
+
+        // Debounce speaking status
+        if (volume > speakingThreshold && !isSpeaking) {
+            if (!speakingTimeout) {
+                speakingTimeout = setTimeout(() => {
+                    isSpeaking = true;
+                    updateMicSpeakingStatus(currentUser.id, true); // Update local user's mic UI
+                    socket.emit('speaking', { userId: currentUser.id, isSpeaking: true }); // Notify server
+                    speakingTimeout = null;
+                }, speakingDebounceTime);
+            }
+        } else if (volume <= speakingThreshold && isSpeaking) {
+            if (!speakingTimeout) {
+                speakingTimeout = setTimeout(() => {
+                    isSpeaking = false;
+                    updateMicSpeakingStatus(currentUser.id, false); // Update local user's mic UI
+                    socket.emit('speaking', { userId: currentUser.id, isSpeaking: false }); // Notify server
+                    speakingTimeout = null;
+                }, speakingDebounceTime);
+            }
+        } else if (volume > speakingThreshold && speakingTimeout) {
+            // If volume goes above threshold again while debounce is active, clear timeout
+            clearTimeout(speakingTimeout);
+            speakingTimeout = null;
+        }
+    };
+    console.log('Audio processing for speaking detection started.');
+}
+
+/**
+ * Stops local audio processing.
+ */
+function stopAudioProcessing() {
+    if (scriptProcessor) {
+        scriptProcessor.disconnect();
+        scriptProcessor = null;
+    }
+    if (analyser) {
+        analyser.disconnect();
+        analyser = null;
+    }
+    if (microphone) {
+        microphone.disconnect();
+        microphone = null;
+    }
+    if (audioContext && audioContext.state !== 'closed') {
+        // audioContext.close(); // Don't close context if other streams are active
+        // audioContext = null;
+    }
+    if (speakingTimeout) {
+        clearTimeout(speakingTimeout);
+        speakingTimeout = null;
+    }
+    isSpeaking = false; // Reset speaking status
+    updateMicSpeakingStatus(currentUser.id, false); // Ensure mic UI is off
+    socket.emit('speaking', { userId: currentUser.id, isSpeaking: false }); // Notify server
+    console.log('Audio processing for speaking detection stopped.');
+}
+
 
 /**
  * Creates a new RTCPeerConnection for a remote user.
@@ -86,10 +203,6 @@ function createPeerConnection(remoteUserId) {
         document.body.appendChild(remoteAudio); // Append to body or a dedicated audio container
 
         audioElements[remoteUserId] = remoteAudio; // Store reference
-
-        // Optional: Update mic UI to show user is speaking (requires audio analysis)
-        // For now, we'll just ensure their mic circle is rendered.
-        // The mic circle's 'active' class is currently simulated in room_ui.js
     };
 
     // Handle connection state changes (for debugging)
@@ -109,6 +222,12 @@ function createPeerConnection(remoteUserId) {
  * @param {string} remoteUserId - The ID of the remote user.
  */
 async function createOffer(remoteUserId) {
+    // Only create offer if a peer connection doesn't already exist or is not connecting
+    if (peerConnections[remoteUserId] && peerConnections[remoteUserId].connectionState !== 'closed') {
+        console.log(`Offer already exists or connection in progress for ${remoteUserId}.`);
+        return;
+    }
+
     const pc = createPeerConnection(remoteUserId);
     try {
         const offer = await pc.createOffer();
@@ -132,7 +251,16 @@ async function handleOffer(data) {
     const { senderId, offer } = data;
     console.log(`Received WebRTC offer from ${senderId}`);
 
-    const pc = createPeerConnection(senderId); // Create PC for the sender
+    // If we don't have a local stream yet, try to get it first
+    if (!localStream) {
+        localStream = await getLocalStream();
+        if (!localStream) {
+            console.error('Cannot handle offer: No local stream available.');
+            return;
+        }
+    }
+
+    const pc = peerConnections[senderId] || createPeerConnection(senderId); // Reuse or create PC
     try {
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
@@ -226,14 +354,12 @@ export async function toggleLocalMic() {
             socket.emit('micStatus', { userId: currentUser.id, isActive: true });
 
             // Now, establish peer connections with existing users in the room
-            // This assumes room_ui.js's currentRoomUsers is up-to-date
-            const roomUsers = document.querySelectorAll('.mic-circle'); // Get all mic elements
-            roomUsers.forEach(micEl => {
-                const remoteUserId = micEl.getAttribute('data-user-id');
-                if (remoteUserId && remoteUserId !== currentUser.id) {
-                    createOffer(remoteUserId); // Initiate WebRTC connection
+            // currentRoomUsers is imported from room_ui.js
+            for (const userId in currentRoomUsers) {
+                if (userId !== currentUser.id) {
+                    createOffer(userId); // Initiate WebRTC connection
                 }
-            });
+            }
         }
     } else {
         // If stream exists, stop all tracks and clean up
@@ -242,6 +368,8 @@ export async function toggleLocalMic() {
         if (micAudioElement) {
             micAudioElement.srcObject = null;
         }
+        stopAudioProcessing(); // Stop audio processing when mic is off
+
         toggleMicBtn.textContent = '🎤 تشغيل المايك';
         toggleMicBtn.classList.remove('bg-red-500');
         toggleMicBtn.classList.add('bg-green-500');
@@ -260,15 +388,14 @@ export async function toggleLocalMic() {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure currentUser is loaded before setting up WebRTC listeners
-    if (!currentUser) {
-        console.warn('WebRTC: Current user not available. Listeners will be set up after auth.');
-        // You might want to defer this until currentUser is loaded (e.g., via a custom event)
-    }
+    // This listener relies on currentUser being populated by main.js
+    // It's crucial that main.js loads first and populates currentUser.
 
     // Listener for when a new user joins the room
     // This will trigger an offer to be sent to the new user
     document.addEventListener('userUpdate', (event) => {
         const { type, user } = event.detail;
+        // Only create offer if local mic is active and it's a new user (not self)
         if (type === 'joined' && user.userId !== currentUser.id && localStream) {
             console.log(`WebRTC: New user ${user.username} joined. Creating offer.`);
             createOffer(user.userId);
@@ -283,12 +410,20 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('webrtc-answer', handleAnswer);
     socket.on('webrtc-ice-candidate', handleIceCandidate);
 
+    // Listen for speaking status from other users (emitted by server based on their webrtc.js)
+    socket.on('speakingStatus', (data) => {
+        const { userId, isSpeaking } = data;
+        if (userId !== currentUser.id) { // Don't update local user's mic based on server echo
+            updateMicSpeakingStatus(userId, isSpeaking);
+        }
+    });
+
     // Initial setup for the mic toggle button
     if (toggleMicBtn) {
         toggleMicBtn.addEventListener('click', toggleLocalMic);
-        // Set initial button state
-        toggleMicBtn.textContent = localStream ? '🔇 إيقاف المايك' : '🎤 تشغيل المايك';
-        toggleMicBtn.classList.add(localStream ? 'bg-red-500' : 'bg-green-500');
+        // Set initial button state (assuming mic is off by default)
+        toggleMicBtn.textContent = '🎤 تشغيل المايك';
+        toggleMicBtn.classList.add('bg-green-500');
     }
 });
 
