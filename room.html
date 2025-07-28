@@ -6,7 +6,7 @@
     <title>الغرفة الصوتية - AirChat</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons (if needed, or use SVG directly) -->
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Link to global styles (custom styles will be here eventually) -->
     <link rel="stylesheet" href="./css/style.css">
@@ -14,7 +14,7 @@
         /* Base styles for the entire page */
         body {
             background-color: #8B0000; /* Deep Red for a bold, attractive look */
-            background-image: url('/assets/images/room-bg-eagle.jpg'); /* Eagle background as per user's preference */
+            background-image: url('/assets/images/room-bg-fire.jpg'); /* Dynamic background: fire, smoke, or elegant theme */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -268,7 +268,7 @@
             transition: all 0.3s ease;
             flex-shrink: 0;
             color: white;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             border: 2px solid transparent; /* For active state */
         }
         .general-mic-circle img {
@@ -431,6 +431,103 @@
             font-weight: 600;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
+
+        /* Gift Panel */
+        #gift-panel-container {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 380px;
+            max-height: 450px;
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            padding: 1.5rem;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        #gift-panel-container.show {
+            display: flex;
+        }
+        #gift-categories {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        #gift-categories button {
+            background-color: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 1rem;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+        }
+        #gift-categories button.active, #gift-categories button:hover {
+            background-color: #FF4500; /* Orange-red for active/hover */
+        }
+        #gift-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .gift-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 1rem;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .gift-item:hover {
+            transform: translateY(-3px);
+            border-color: #FFD700;
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+        .gift-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+        .gift-item .name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .gift-item .price {
+            font-size: 0.7rem;
+            color: #FFD700;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+        .gift-send-button {
+            background-color: #00FF7F; /* Bright green send button */
+            color: black;
+            padding: 8px 15px;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+            transition: background-color 0.2s ease;
+        }
+        .gift-send-button:hover {
+            background-color: #00E676;
+        }
+
 
         /* Floating Panels Container (holds all side panels) */
         #floating-panels-container {
@@ -733,6 +830,39 @@
                 max-height: 280px;
                 padding: 1rem;
             }
+            #gift-panel-container {
+                width: 95%;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 70px;
+                max-height: 280px;
+                padding: 1rem;
+            }
+            #gift-categories button {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            #gift-list {
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+                gap: 10px;
+            }
+            .gift-item {
+                padding: 8px;
+            }
+            .gift-item img {
+                width: 50px;
+                height: 50px;
+            }
+            .gift-item .name {
+                font-size: 0.7rem;
+            }
+            .gift-item .price {
+                font-size: 0.6rem;
+            }
+            .gift-send-button {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
 
             #floating-panels-container {
                 width: 95%;
@@ -796,17 +926,35 @@
             background-color: rgba(40, 40, 40, 0.95);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
-        body.dark-mode #top-bar, body.dark-mode #bottom-controls {
+        body.dark-mode #top-bar, body.dark-mode #bottom-controls, body.dark-mode #gift-panel-container {
             background-color: rgba(0, 0, 0, 0.8);
         }
-        body.dark-mode .floating-panel {
-            background-color: rgba(50, 50, 50, 0.9);
+        body.dark-mode #floating-panels-container {
+            background-color: rgba(0, 0, 0, 0.8);
             color: #eee;
+        }
+        body.dark-mode .floating-panel-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #eee;
+            box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
         }
         body.dark-mode #chat-input-area input {
             background-color: #333;
             color: #eee;
             border-color: #555;
+        }
+        body.dark-mode #user-info-popup {
+            background-color: rgba(40, 40, 40, 0.95);
+            color: #eee;
+        }
+        body.dark-mode #gift-categories button {
+            background-color: rgba(255,255,255,0.1);
+        }
+        body.dark-mode #gift-categories button.active, body.dark-mode #gift-categories button:hover {
+            background-color: #FF4500;
+        }
+        body.dark-mode .gift-item {
+            background-color: rgba(255,255,255,0.05);
         }
     </style>
 </head>
@@ -815,13 +963,17 @@
         <!-- Top Bar - User Info & Global Controls -->
         <div id="top-bar">
             <div class="user-info">
-                <img id="current-user-avatar" src="https://placehold.co/40x40/cccccc/333333?text=User" alt="User Avatar"/>
+                <img id="current-user-avatar" src="https://placehold.co/45x45/cccccc/333333?text=User" alt="User Avatar"/>
                 <span id="current-username">اسم المستخدم</span>
-                <span id="current-user-id">ID: 123456</span>
+                <span id="current-user-id" class="user-id">ID: 123456</span>
             </div>
             <div class="global-controls">
                 <button id="toggle-music-btn">🎵 موسيقى</button>
                 <button id="toggle-dark-mode-btn">🌙 الوضع</button>
+                <!-- Add timer here as per request -->
+                <div id="stayTimer" class="floating-panel-item bg-transparent shadow-none border-none !p-0 !m-0 !text-white !font-bold">
+                    ⏳ <span id="timer">00:00:00</span>
+                </div>
             </div>
         </div>
 
@@ -862,9 +1014,10 @@
         </div>
 
         <!-- Central Announcement/Message Area -->
-        <div id="central-message-area" class="hidden">
+        <div id="central-message-area" class="popup">
             <h3 class="font-bold text-xl mb-2">📣 إعلان هام!</h3>
             <p>مرحباً بكم في الغرفة! يرجى الالتزام بقواعد الاحترام المتبادل.</p>
+            <button onclick="closePopup('central-message-area')" class="button bg-gray-500 hover:bg-gray-600 mt-4">إغلاق</button>
         </div>
         
         <!-- Button to request mic (added for stage mics) -->
@@ -877,7 +1030,7 @@
             <!-- General user mic circles will be dynamically added here by JS -->
             <!-- Example General Mic (will be replaced by dynamic content) -->
             <div class="general-mic-circle flex flex-col items-center justify-center relative" data-user-id="generalUser1">
-                <img src="https://placehold.co/50x50/ff0000/ffffff?text=U2" alt="General User 1" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"/>
+                <img src="https://placehold.co/55x55/ff0000/ffffff?text=U2" alt="General User 1" class="w-14 h-14 rounded-full object-cover border-3 border-white shadow-md"/>
                 <span class="mic-name text-white font-semibold text-shadow-sm">مستخدم عادي</span>
                 <span class="user-status online"></span>
             </div>
@@ -886,23 +1039,23 @@
         <!-- Bottom Control Bar -->
         <div id="bottom-controls">
             <div class="control-button" id="toggle-mic-btn-bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.64 6.43-6 6.92V21h-2v-3.08c-3.36-.49-6-3.39-6-6.92h2c0 2.76 2.24 5 5 5s5-2.24 5-5h2z"/></svg>
+                <i class="fas fa-microphone"></i>
                 <span>المايك</span>
             </div>
             <div class="control-button" id="send-gift-btn-bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5-5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                <i class="fas fa-gift"></i>
                 <span>هدية</span>
             </div>
             <div class="control-button" id="toggle-chat-btn-bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                <i class="fas fa-comment-dots"></i>
                 <span>الدردشة</span>
             </div>
             <div class="control-button" id="show-panels-btn-bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                <i class="fas fa-ellipsis-h"></i>
                 <span>المزيد</span>
             </div>
             <div class="control-button" id="exit-room-btn-bottom">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <i class="fas fa-sign-out-alt"></i>
                 <span>خروج</span>
             </div>
         </div>
@@ -910,8 +1063,15 @@
 
     <!-- Chat Box - Positioned to the side/bottom-right -->
     <div id="chat-box-container">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">💬 الدردشة العامة</h3>
         <div id="chat-messages">
             <!-- Chat messages will be dynamically added here -->
+            <div class="chat-message text-sm p-2 rounded-lg bg-gray-100 dark:bg-gray-700 mb-2">
+                <span class="font-bold text-blue-600 dark:text-blue-400">مستخدم تجريبي:</span> مرحباً بالجميع!
+            </div>
+            <div class="chat-message text-sm p-2 rounded-lg bg-red-100 dark:bg-red-700 mb-2">
+                <span class="font-bold text-red-600 dark:text-red-400">مشرف:</span> يرجى الالتزام بالقوانين.
+            </div>
         </div>
         <div id="chat-input-area">
             <input type="text" id="chat-input" placeholder="اكتب رسالة..." />
@@ -919,18 +1079,45 @@
         </div>
     </div>
 
+    <!-- Gift Panel - Positioned to the side/bottom-right -->
+    <div id="gift-panel-container">
+        <h3 class="text-xl font-bold mb-4 text-white">🎁 إرسال الهدايا</h3>
+        <div id="gift-categories">
+            <button class="active" data-category="all">الكل</button>
+            <button data-category="romantic">رومانسي</button>
+            <button data-category="luxury">فاخر</button>
+            <button data-category="funny">مضحك</button>
+            <button data-category="animals">حيوانات</button>
+        </div>
+        <div id="gift-list">
+            <!-- Gift items will be dynamically added here -->
+            <div class="gift-item" data-gift-id="rose">
+                <img src="https://placehold.co/60x60/FF0000/FFFFFF?text=🌹" alt="Rose">
+                <span class="name">وردة</span>
+                <span class="price">100 🪙</span>
+            </div>
+            <div class="gift-item" data-gift-id="car">
+                <img src="https://placehold.co/60x60/0000FF/FFFFFF?text=🚗" alt="Car">
+                <span class="name">سيارة</span>
+                <span class="price">5000 🪙</span>
+            </div>
+            <div class="gift-item" data-gift-id="laugh">
+                <img src="https://placehold.co/60x60/FFFF00/000000?text=😂" alt="Laugh">
+                <span class="name">ضحكة</span>
+                <span class="price">50 🪙</span>
+            </div>
+            <div class="gift-item" data-gift-id="dog">
+                <img src="https://placehold.co/60x60/8B4513/FFFFFF?text=🐶" alt="Dog">
+                <span class="name">كلب</span>
+                <span class="price">200 🪙</span>
+            </div>
+        </div>
+        <button id="send-selected-gift-btn" class="gift-send-button">إرسال الهدية</button>
+    </div>
+
     <!-- Floating Panels Container (holds all side panels) -->
     <div id="floating-panels-container">
-        <div id="stayTimer" class="floating-panel-item">⏳ مدة التواجد: <span id="timer">00:00</span></div>
-        <div id="entryLog" class="floating-panel-item">
-            <h3 class="font-bold text-lg mb-2">📜 سجل الدخول والخروج:</h3>
-            <ul id="logList" class="list-none p-0 m-0 text-sm"></ul>
-        </div>
         <div id="online-counter" class="floating-panel-item bg-blue-500 text-white">👥 المتصلين الآن: <span id="onlineCount">0</span></div>
-        <div id="moderatorList" class="floating-panel-item">
-            <h3 class="font-bold text-lg mb-2">🛡️ المشرفون:</h3>
-            <ul id="moderatorListContent" class="list-none p-0 m-0 text-sm"><li>لا يوجد مشرفون حاليًا.</li></ul>
-        </div>
         <div id="userDisplay" class="floating-panel-item">
             <h3 class="font-bold text-lg mb-2">👤 المستخدم:</h3>
             <span id="userBadgeName">جارٍ التحميل...</span>
@@ -958,21 +1145,32 @@
                 <li>3. -</li>
             </ul>
         </div>
-        <div id="achievements-box" class="floating-panel-item"></div>
-        <!-- New panel for "More" options -->
+        <div id="entryLog" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">📜 سجل الدخول والخروج:</h3>
+            <ul id="logList" class="list-none p-0 m-0 text-sm"></ul>
+        </div>
+        <div id="achievements-box" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">🏅 الإنجازات:</h3>
+            <p>لا توجد إنجازات حاليًا.</p>
+        </div>
+
+        <!-- New panel for "More" options / Settings / Admin Controls -->
         <div id="more-options-panel" class="floating-panel-item">
-            <h3 class="font-bold text-lg mb-2">⚙️ خيارات إضافية:</h3>
+            <h3 class="font-bold text-lg mb-4">⚙️ خيارات إضافية</h3>
             <div class="grid grid-cols-2 gap-3">
-                <button id="mic-lock-btn" class="button bg-red-500 hover:bg-red-600 text-sm py-2">🔒 قفل/فتح المايك</button>
-                <button id="assign-moderator-btn" class="button bg-green-500 hover:bg-green-600 text-sm py-2">🛡️ تعيين مشرف</button>
-                <button id="ban-user-btn" class="button bg-red-700 hover:bg-red-800 text-sm py-2">⛔ حظر مستخدم</button>
-                <button id="report-user-btn" class="button bg-yellow-500 hover:bg-yellow-600 text-sm py-2">⚠️ تبليغ عن مستخدم</button>
-                <button id="make-announcement-btn" class="button bg-purple-500 hover:bg-purple-600 text-sm py-2">📣 إعلان</button>
-                <button id="mute-all-users-btn" class="button bg-orange-500 hover:bg-orange-600 text-sm py-2">🔇 كتم الجميع</button>
-                <button id="pin-message-btn" class="button bg-teal-500 hover:bg-teal-600 text-sm py-2">📌 تثبيت رسالة</button>
-                <button id="copy-room-link-btn" class="button bg-indigo-500 hover:bg-indigo-600 text-sm py-2">🔗 مشاركة الغرفة</button>
-                <button id="simulate-xp-btn" class="button bg-blue-700 hover:bg-blue-800 text-sm py-2">✨ كسب XP</button>
-                <button id="show-top-users-btn-panel" class="button bg-purple-700 hover:bg-purple-800 text-sm py-2">🏆 المتصدرون</button>
+                <button id="settings-btn" class="button bg-gray-700 hover:bg-gray-800 text-sm py-2"><i class="fas fa-cog"></i> الإعدادات</button>
+                <button id="edit-profile-btn" class="button bg-blue-500 hover:bg-blue-600 text-sm py-2"><i class="fas fa-user-edit"></i> تعديل الملف</button>
+                <button id="change-background-btn" class="button bg-purple-500 hover:bg-purple-600 text-sm py-2"><i class="fas fa-image"></i> تغيير الخلفية</button>
+                <button id="copy-room-link-btn" class="button bg-indigo-500 hover:bg-indigo-600 text-sm py-2"><i class="fas fa-share-alt"></i> مشاركة الغرفة</button>
+                <button id="gift-log-btn" class="button bg-pink-500 hover:bg-pink-600 text-sm py-2"><i class="fas fa-history"></i> سجل الهدايا</button>
+                <button id="report-user-btn" class="button bg-yellow-500 hover:bg-yellow-600 text-sm py-2"><i class="fas fa-exclamation-triangle"></i> إبلاغ</button>
+                <button id="room-rules-btn" class="button bg-teal-500 hover:bg-teal-600 text-sm py-2"><i class="fas fa-gavel"></i> قوانين الغرفة</button>
+                <button id="send-announcement-btn" class="button bg-orange-500 hover:bg-orange-600 text-sm py-2"><i class="fas fa-bullhorn"></i> إرسال إشعار</button>
+                <button id="mic-lock-btn" class="button bg-red-500 hover:bg-red-600 text-sm py-2"><i class="fas fa-lock"></i> قفل المايك</button>
+                <button id="mute-all-users-btn" class="button bg-orange-700 hover:bg-orange-800 text-sm py-2"><i class="fas fa-volume-mute"></i> كتم الجميع</button>
+                <button id="assign-moderator-btn" class="button bg-green-500 hover:bg-green-600 text-sm py-2"><i class="fas fa-shield-alt"></i> تعيين مشرف</button>
+                <!-- Add other admin/moderator buttons here if needed, or make them appear dynamically -->
+                <button id="show-top-users-btn-panel" class="button bg-purple-700 hover:bg-purple-800 text-sm py-2"><i class="fas fa-trophy"></i> المتصدرون</button>
             </div>
         </div>
     </div>
@@ -980,7 +1178,7 @@
     <!-- User Info Popup (when clicking on a mic) -->
     <div id="user-info-popup" class="popup">
         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">👤 معلومات المستخدم</h3>
-        <img id="popup-user-avatar" src="https://placehold.co/80x80/cccccc/333333?text=User" alt="User Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mx-auto mb-4 shadow-md"/>
+        <img id="popup-user-avatar" src="https://placehold.co/100x100/cccccc/333333?text=User" alt="User Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mx-auto mb-4 shadow-md"/>
         <p class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2"><strong>الاسم:</strong> <span id="popup-username"></span></p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>ID:</strong> <span id="popup-userid"></span> <button onclick="copyToClipboard(document.getElementById('popup-userid').textContent)" class="text-blue-500 hover:underline text-sm ml-2">نسخ</button></p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>النبذة:</strong> <span id="popup-bio"></span></p>
@@ -988,23 +1186,49 @@
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>المستوى:</strong> <span id="popup-level"></span> <span id="popup-level-badge"></span></p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>الرتبة:</strong> <span id="popup-role"></span></p>
 
-        <div id="popup-moderation-buttons" class="flex flex-wrap justify-center gap-3 mt-6">
-            <button onclick="sendPrivateMessagePopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-blue-600 hover:bg-blue-700">✉️ رسالة خاصة</button>
-            <button onclick="sendGiftPopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-pink-600 hover:bg-pink-700">🎁 إرسال هدية</button>
-            <button onclick="increaseReaction(document.getElementById('popup-userid').textContent)" class="button bg-red-500 hover:bg-red-600">🔥 تفاعل</button>
+        <div id="popup-action-buttons" class="flex flex-wrap justify-center gap-3 mt-6">
+            <button onclick="sendPrivateMessagePopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-blue-600 hover:bg-blue-700"><i class="fas fa-envelope"></i> رسالة خاصة</button>
+            <button onclick="sendGiftPopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-pink-600 hover:bg-pink-700"><i class="fas fa-gift"></i> إرسال هدية</button>
+            <button onclick="increaseReaction(document.getElementById('popup-userid').textContent)" class="button bg-red-500 hover:bg-red-600"><i class="fas fa-fire"></i> تفاعل</button>
             
-            <!-- Moderation buttons - controlled by JS -->
-            <button id="popup-mute-btn" class="button bg-yellow-500 hover:bg-yellow-600">🔇 كتم</button>
-            <button id="popup-kick-btn" class="button bg-red-700 hover:bg-red-800">🚫 طرد</button>
-            <button id="popup-ban-btn" class="button bg-red-900 hover:bg-red-950">⛔ حظر</button>
-            <button id="popup-report-btn" class="button bg-orange-500 hover:bg-orange-600">⚠️ تبليغ</button>
+            <!-- Moderation buttons - controlled by JS based on current user's role -->
+            <button id="popup-mute-btn" class="button bg-yellow-500 hover:bg-yellow-600"><i class="fas fa-volume-mute"></i> كتم</button>
+            <button id="popup-kick-btn" class="button bg-red-700 hover:bg-red-800"><i class="fas fa-ban"></i> طرد</button>
+            <button id="popup-ban-btn" class="button bg-red-900 hover:bg-red-950"><i class="fas fa-user-slash"></i> حظر</button>
+            <button id="popup-report-btn" class="button bg-orange-500 hover:bg-orange-600"><i class="fas fa-exclamation-triangle"></i> تبليغ</button>
             
-            <!-- Mic Ascent/Descent buttons - controlled by JS -->
-            <button id="popup-mic-up-btn" class="button bg-green-500 hover:bg-green-600">🎤 صعود المايك</button>
-            <button id="popup-mic-down-btn" class="button bg-red-500 hover:bg-red-600">⬇️ نزول المايك</button>
-            
-            <button onclick="closePopup('user-info-popup')" class="button bg-gray-500 hover:bg-gray-600">❌ إغلاق</button>
+            <!-- Mic Ascent/Descent/Move buttons - controlled by JS -->
+            <button id="popup-mic-up-btn" class="button bg-green-500 hover:bg-green-600"><i class="fas fa-microphone-alt"></i> صعود المايك</button>
+            <button id="popup-mic-down-btn" class="button bg-red-500 hover:bg-red-600"><i class="fas fa-microphone-alt-slash"></i> نزول المايك</button>
+            <button id="popup-move-mic-btn" class="button bg-purple-500 hover:bg-purple-600"><i class="fas fa-exchange-alt"></i> نقل لكرسي آخر</button>
+            <button id="popup-promote-mod-btn" class="button bg-indigo-500 hover:bg-indigo-600"><i class="fas fa-user-shield"></i> ترقية لمشرف</button>
+            <button id="popup-prevent-mic-btn" class="button bg-red-800 hover:bg-red-900"><i class="fas fa-microphone-slash"></i> منع صعود</button>
+
+            <button onclick="closePopup('user-info-popup')" class="button bg-gray-500 hover:bg-gray-600"><i class="fas fa-times"></i> إغلاق</button>
         </div>
+    </div>
+
+    <!-- Confirmation Popup for Exit -->
+    <div id="exit-confirm-popup" class="popup">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">هل أنت متأكد من الخروج؟</h3>
+        <div class="flex gap-4">
+            <button id="confirm-exit-yes" class="button bg-red-600 hover:bg-red-700">نعم، اخرج</button>
+            <button id="confirm-exit-no" class="button bg-gray-500 hover:bg-gray-600">لا، ابقَ</button>
+        </div>
+    </div>
+
+    <!-- Room Rules Popup -->
+    <div id="room-rules-popup" class="popup">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">📋 قوانين الغرفة</h3>
+        <div class="text-left text-gray-700 dark:text-gray-200 mb-6 max-h-64 overflow-y-auto">
+            <p class="mb-2">1. الاحترام المتبادل بين جميع المستخدمين.</p>
+            <p class="mb-2">2. ممنوع استخدام الألفاظ البذيئة أو المسيئة.</p>
+            <p class="mb-2">3. ممنوع نشر الروابط الخارجية أو الإعلانات بدون إذن المشرف.</p>
+            <p class="mb-2">4. يرجى الالتزام بموضوع الغرفة (إذا كان محددًا).</p>
+            <p class="mb-2">5. المشرفون لديهم الحق في اتخاذ الإجراءات اللازمة للحفاظ على النظام.</p>
+            <p class="mb-2">6. استمتع بوقتك وتفاعل بإيجابية!</p>
+        </div>
+        <button onclick="closePopup('room-rules-popup')" class="button bg-blue-600 hover:bg-blue-700">حسناً</button>
     </div>
 
     <!-- Global Popups/Toasts (managed by utils.js) -->
@@ -1036,7 +1260,9 @@
             sendMessage, sendGift, toggleMusic, toggleMicLock, makeAnnouncement,
             muteAllUsers, pinMessage, copyRoomLink, exitRoom, simulateXPAction,
             toggleDarkMode, assignModerator, reportUser, changeUsername,
-            requestMicAscent, requestMicDescent
+            requestMicAscent, requestMicDescent, // Mic stage control
+            kickUser, banUser, toggleUserMute, // Moderation actions
+            transferUserMic, preventMicAscent // New moderation actions
         } from '/js/room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
@@ -1056,14 +1282,21 @@
         window.changeUsername = changeUsername;
         window.requestMicAscent = requestMicAscent;
         window.requestMicDescent = requestMicDescent;
+        window.kickUser = kickUser;
+        window.banUser = banUser;
+        window.toggleUserMute = toggleUserMute;
+        window.transferUserMic = transferUserMic;
+        window.preventMicAscent = preventMicAscent;
+
 
         // Import UI functions that need to be called by inline events or directly
         import {
             showUserInfoPopup, closePopup, showWelcomePopup, closeWelcomePopup,
             updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
-            toggleChatBox, toggleFloatingPanels,
+            toggleChatBox, toggleFloatingPanels, toggleGiftPanel,
             populateStageMics, populateGeneralMics,
-            updateUserInfoPopup
+            updateUserInfoPopup, showCustomAlert, updateOnlineCount, updateStayTimer,
+            showRoomRulesPopup, showExitConfirmPopup // New popups
         } from '/js/room_ui.js';
 
         window.showUserInfoPopup = showUserInfoPopup;
@@ -1076,15 +1309,18 @@
         window.updateUserBadgeNameDisplay = updateUserBadgeNameDisplay;
         window.toggleChatBox = toggleChatBox;
         window.toggleFloatingPanels = toggleFloatingPanels;
+        window.toggleGiftPanel = toggleGiftPanel; // Expose new gift panel toggle
         window.populateStageMics = populateStageMics;
         window.populateGeneralMics = populateGeneralMics;
         window.updateUserInfoPopup = updateUserInfoPopup;
+        window.showCustomAlert = showCustomAlert;
+        window.updateOnlineCount = updateOnlineCount;
+        window.updateStayTimer = updateStayTimer;
+        window.showRoomRulesPopup = showRoomRulesPopup;
+        window.showExitConfirmPopup = showExitConfirmPopup;
 
         // For mic-specific actions from popup (e.g., mute, kick, ban)
-        import { toggleUserMute, kickUser, banUser, sendPrivateMessagePopup, sendGiftPopup, increaseReaction } from '/js/room_ui.js';
-        window.toggleUserMute = toggleUserMute;
-        window.kickUser = kickUser;
-        window.banUser = banUser;
+        import { sendPrivateMessagePopup, sendGiftPopup, increaseReaction } from '/js/room_ui.js';
         window.sendPrivateMessagePopup = sendPrivateMessagePopup;
         window.sendGiftPopup = sendGiftPopup;
         window.increaseReaction = increaseReaction;
@@ -1097,16 +1333,39 @@
         // Event listeners for bottom controls
         document.getElementById('toggle-chat-btn-bottom').addEventListener('click', toggleChatBox);
         document.getElementById('show-panels-btn-bottom').addEventListener('click', toggleFloatingPanels);
-        document.getElementById('exit-room-btn-bottom').addEventListener('click', exitRoom);
-        document.getElementById('send-gift-btn-bottom').addEventListener('click', () => {
-            // This button will now show a general gift popup or direct to a gift selection
-            showCustomAlert('إرسال هدية عامة أو اختيار مستخدم من المايكات.', 'info');
-        });
+        document.getElementById('exit-room-btn-bottom').addEventListener('click', showExitConfirmPopup); // Show confirmation popup
+        document.getElementById('send-gift-btn-bottom').addEventListener('click', toggleGiftPanel); // Show gift panel
 
         // Event listener for "المتصدرون" button inside "More Options" panel
         document.getElementById('show-top-users-btn-panel').addEventListener('click', () => {
             window.location.href = 'top_users.html'; // Navigate to top users page
         });
+
+        // Event listeners for "More Options" panel buttons
+        document.getElementById('settings-btn').addEventListener('click', () => showCustomAlert('الإعدادات (قيد التطوير)', 'info'));
+        document.getElementById('edit-profile-btn').addEventListener('click', () => showCustomAlert('تعديل الملف الشخصي (قيد التطوير)', 'info'));
+        document.getElementById('change-background-btn').addEventListener('click', () => showCustomAlert('تغيير الخلفية (قيد التطوير)', 'info'));
+        document.getElementById('copy-room-link-btn').addEventListener('click', () => {
+            // This will copy the current room URL
+            const roomLink = window.location.href;
+            navigator.clipboard.writeText(roomLink).then(() => {
+                showCustomAlert('تم نسخ رابط الغرفة بنجاح!', 'success');
+            }).catch(err => {
+                showCustomAlert('فشل نسخ رابط الغرفة.', 'error');
+                console.error('Failed to copy room link: ', err);
+            });
+        });
+        document.getElementById('gift-log-btn').addEventListener('click', () => showCustomAlert('سجل الهدايا (قيد التطوير)', 'info'));
+        document.getElementById('report-user-btn').addEventListener('click', () => showCustomAlert('الإبلاغ عن مستخدم (قيد التطوير)', 'info'));
+        document.getElementById('room-rules-btn').addEventListener('click', showRoomRulesPopup); // Show room rules popup
+        document.getElementById('send-announcement-btn').addEventListener('click', () => showCustomAlert('إرسال إشعار للمستخدمين (قيد التطوير)', 'info'));
+        document.getElementById('mic-lock-btn').addEventListener('click', toggleMicLock); // Assuming this will be a global mic lock
+        document.getElementById('mute-all-users-btn').addEventListener('click', muteAllUsers); // Assuming this will mute all general users
+        document.getElementById('assign-moderator-btn').addEventListener('click', () => showCustomAlert('تعيين مشرف (قيد التطوير)', 'info')); // This will need a user selection mechanism
+
+        // Event listeners for Exit Confirmation Popup
+        document.getElementById('confirm-exit-yes').addEventListener('click', exitRoom);
+        document.getElementById('confirm-exit-no').addEventListener('click', () => closePopup('exit-confirm-popup'));
 
         // Initial setup for the page after all scripts are loaded
         document.addEventListener('DOMContentLoaded', () => {
@@ -1115,6 +1374,52 @@
             if (!roomId) {
                 console.warn('No room ID specified in URL. Joining default room.');
             }
+
+            // Example usage for populating mics and user info (replace with actual data from server)
+            const dummyStageUsers = [
+                { id: 'user123', username: 'محمد', avatar: 'https://placehold.co/80x80/007bff/ffffff?text=Mohamed', isSpeaking: true, isMuted: false, role: 'member', isOnline: true, micIndex: 1 },
+                { id: 'user456', username: 'فاطمة', avatar: 'https://placehold.co/80x80/ff00ff/ffffff?text=Fatima', isSpeaking: false, isMuted: false, role: 'moderator', isOnline: true, micIndex: 3 },
+                { id: 'user789', username: 'علي', avatar: 'https://placehold.co/80x80/00ff00/ffffff?text=Ali', isSpeaking: false, isMuted: true, role: 'member', isOnline: true, micIndex: 5 }
+            ];
+            populateStageMics(dummyStageUsers);
+
+            const dummyGeneralUsers = [
+                { id: 'genUser1', username: 'سارة', avatar: 'https://placehold.co/50x50/ffa500/ffffff?text=Sara', isSpeaking: false, isMuted: false, role: 'member', isOnline: true },
+                { id: 'genUser2', username: 'خالد', avatar: 'https://placehold.co/50x50/800080/ffffff?text=Khaled', isSpeaking: true, isMuted: false, role: 'member', isOnline: true },
+                { id: 'genUser3', username: 'ليلى', avatar: 'https://placehold.co/50x50/008080/ffffff?text=Layla', isSpeaking: false, isMuted: false, role: 'vip', isOnline: true },
+                { id: 'genUser4', username: 'أحمد', avatar: 'https://placehold.co/50x50/c0c0c0/000000?text=Ahmed', isSpeaking: false, isMuted: false, role: 'member', isOnline: true },
+                { id: 'genUser5', username: 'نور', avatar: 'https://placehold.co/50x50/ffc0cb/000000?text=Noor', isSpeaking: false, isMuted: false, role: 'member', isOnline: true },
+                { id: 'genUser6', username: 'يوسف', avatar: 'https://placehold.co/50x50/8a2be2/ffffff?text=Yousef', isSpeaking: false, isMuted: false, role: 'member', isOnline: true },
+                { id: 'genUser7', username: 'مريم', avatar: 'https://placehold.co/50x50/00ced1/ffffff?text=Maryam', isSpeaking: false, isMuted: false, role: 'member', isOnline: true },
+            ];
+            populateGeneralMics(dummyGeneralUsers);
+
+            // Update current user info (example)
+            updateCurrentUserDisplay({
+                id: 'currentUser777',
+                username: 'مشرف الغرفة',
+                avatar: 'https://placehold.co/45x45/FFD700/000000?text=Admin',
+                role: 'admin' // Set current user role for testing moderation buttons
+            });
+
+            // Initial updates for general panels
+            updateOnlineCount(dummyStageUsers.length + dummyGeneralUsers.length);
+            updateXPDisplay(500);
+            updateLevelDisplay(5);
+            updateGiftCounterDisplay(10);
+            updateUserBadgeNameDisplay('مشرف الغرفة');
+
+            // Start timer (example)
+            let seconds = 0;
+            setInterval(() => {
+                seconds++;
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const remainingSeconds = seconds % 60;
+                updateStayTimer(
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+                );
+            }, 1000);
         });
     </script>
 </body>
