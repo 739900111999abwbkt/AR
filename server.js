@@ -1,644 +1,878 @@
 /**
  * @file server.js
- * @description This file sets up the main Node.js Express server, integrates Socket.IO for real-time communication,
- * and initializes Firebase Firestore for data persistence. It also handles static file serving
- * and basic Socket.IO events for the AirChat application, now including WebRTC signaling and speaking status.
+ * @description Main backend server for AirChat, handling real-time communication
+ * via Socket.io, user authentication and data storage with Firebase Firestore,
+ * and managing room states, moderation, and WebRTC signaling.
  */
 
-// Import necessary modules
-import express from 'express'; // Web framework for Node.js
-import { createServer } from 'http'; // HTTP server module
-import { Server } from 'socket.io'; // Socket.IO for real-time bidirectional communication
-import cors from 'cors'; // Cross-Origin Resource Sharing middleware
-import { initializeApp } from 'firebase/app'; // Firebase initialization
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore'; // Firestore database services
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth'; // Firebase Authentication
+// --- Module Imports ---
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const admin = require('firebase-admin'); // Correct Firebase Admin SDK
 
-// --- Global Variables (Provided by Canvas Environment) ---
-// These variables are automatically injected by the Canvas environment.
-// We provide fallback values for local development if they are not defined.
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-airchat-app';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-// Corrected assignment for initialAuthToken to use the global __initial_auth_token
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+// --- Firebase Admin SDK Initialization ---
+// IMPORTANT: Replace 'path/to/your/serviceAccountKey.json' with the actual path
+// to your Firebase service account key file. Keep this file secure and private.
+// Ensure this file is in the same directory as server.js
+const serviceAccount = require('./serviceAccountKey.json'); 
 
-// --- Firebase Initialization ---
-// Initialize Firebase app with the provided configuration.
-const firebaseApp = initializeApp(firebaseConfig);
-// Get Firestore and Auth instances.
-const db = getFirestore(firebaseApp);
-const auth = getAuth(firebaseApp);
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    // databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com" // Optional: if using Realtime Database
+});
 
-console.log('Firebase Initialized:', firebaseConfig ? 'With Config' : 'Without Config (Default)');
+const db = admin.firestore();
+console.log('Firebase Admin SDK initialized.');
 
 // --- Express App Setup ---
 const app = express();
-const httpServer = createServer(app); // Create HTTP server from Express app
-
-// Configure CORS for Socket.IO and Express.
-// This allows requests from different origins (e.g., your frontend running on localhost:3000).
-app.use(cors({
-    origin: '*', // Allow all origins for development. In production, specify your frontend domain.
-    methods: ['GET', 'POST'], // Allowed HTTP methods
-    credentials: true // Allow sending cookies/auth headers
-}));
-
-// Middleware to parse JSON request bodies
-app.use(express.json());
-
-// --- Socket.IO Setup ---
-// Create a Socket.IO server instance, attaching it to the HTTP server.
-const io = new Server(httpServer, {
+const server = http.createServer(app);
+const io = new Server(server, {
     cors: {
-        origin: '*', // Allow all origins for Socket.IO connections
-        methods: ['GET', 'POST'],
-        credentials: true
+        origin: "*", // Allow all origins for development. Restrict in production.
+        methods: ["GET", "POST"]
     }
 });
-
-// --- Firebase Authentication for Server ---
-// Sign in anonymously or with a custom token when the server starts.
-// This is crucial for the server to interact with Firestore securely.
-(async () => {
-    try {
-        if (initialAuthToken) {
-            await signInWithCustomToken(auth, initialAuthToken);
-            console.log('Firebase: Signed in with custom token.');
-        } else {
-            await signInAnonymously(auth);
-            console.log('Firebase: Signed in anonymously.');
-        }
-        // Store the authenticated user's ID for server-side operations
-        // This userId will be used for private data paths in Firestore security rules.
-        const serverUserId = auth.currentUser?.uid || 'server-anon-user';
-        console.log('Server Firebase User ID:', serverUserId);
-
-        // Set up an auth state listener (optional, but good for debugging)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log('Firebase Auth State Changed: User is signed in:', user.uid);
-            } else {
-                console.log('Firebase Auth State Changed: User is signed out.');
-            }
-        });
-
-    } catch (error) {
-        console.error('Firebase authentication failed on server startup:', error);
-    }
-})();
-
-
-// --- Firestore Collection Paths ---
-// Define base paths for public and private data in Firestore.
-// These paths are designed to work with Firebase Security Rules.
-const getPublicCollectionRef = (collectionName) => collection(db, `artifacts/${appId}/public/data/${collectionName}`);
-const getPrivateCollectionRef = (userId, collectionName) => collection(db, `artifacts/${appId}/users/${userId}/${collectionName}`);
-
-// --- Server-Side Data Structures (Simplified for real-time updates) ---
-// In a real large-scale application, this data would primarily reside in Firestore
-// and be fetched/updated as needed, with server-side caching.
-// For this example, we'll keep simple in-memory structures for active users/rooms.
-const activeRooms = {}; // Stores active rooms and their users
-const activeUsers = {}; // Stores all currently connected users and their socket IDs
-
-/**
- * Helper function to send a custom alert message to a specific socket.
- * @param {Object} socket - The socket.io socket object.
- * @param {string} message - The message to display.
- * @param {string} type - Type of alert (e.g., 'success', 'error', 'warning').
- */
-const sendCustomAlert = (socket, message, type = 'info') => {
-    socket.emit('customAlert', { message, type });
-};
-
-// --- Socket.IO Event Handlers ---
-io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
-    sendCustomAlert(socket, 'Connected to AirChat server!', 'success');
-
-    // Store user data when they connect
-    activeUsers[socket.id] = {
-        socketId: socket.id,
-        userId: null, // Will be set on 'joinRoom'
-        username: 'Guest', // Default username
-        roomId: null, // Will be set on 'joinRoom'
-        avatar: '',
-        isMuted: false,
-        isAdmin: false,
-        isVIP: false,
-        xp: 0,
-        giftsReceived: 0,
-        lastActive: Date.now()
-    };
-
-    /**
-     * Handles a user joining a specific room.
-     * @param {Object} data - Contains roomId, userId, username, and optionally avatar.
-     */
-    socket.on('joinRoom', async (data) => {
-        const { roomId, userId, username, avatar } = data;
-
-        if (!roomId || !userId || !username) {
-            sendCustomAlert(socket, 'Room ID, User ID, and Username are required to join.', 'error');
-            return;
-        }
-
-        // Leave any previously joined room
-        if (activeUsers[socket.id].roomId) {
-            socket.leave(activeUsers[socket.id].roomId);
-            console.log(`${username} (${userId}) left room ${activeUsers[socket.id].roomId}`);
-            io.to(activeUsers[socket.id].roomId).emit('userLeft', { userId: activeUsers[socket.id].userId, username: activeUsers[socket.id].username });
-        }
-
-        socket.join(roomId); // Join the new room
-        activeUsers[socket.id].userId = userId;
-        activeUsers[socket.id].username = username;
-        activeUsers[socket.id].roomId = roomId;
-        activeUsers[socket.id].avatar = avatar || activeUsers[socket.id].avatar; // Update avatar if provided
-
-        if (!activeRooms[roomId]) {
-            activeRooms[roomId] = {
-                users: {},
-                messages: [],
-                background: 'https://placehold.co/1200x800/87CEEB/ffffff?text=AirChat+Room',
-                music: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-            };
-        }
-        activeRooms[roomId].users[userId] = activeUsers[socket.id];
-
-        console.log(`${username} (${userId}) joined room: ${roomId}`);
-        sendCustomAlert(socket, `Welcome to room ${roomId}, ${username}!`, 'success');
-
-        // Notify others in the room
-        io.to(roomId).emit('userJoined', { userId, username, avatar, socketId: socket.id });
-
-        // Send current room state to the joining user
-        socket.emit('roomState', {
-            users: Object.values(activeRooms[roomId].users),
-            messages: activeRooms[roomId].messages,
-            background: activeRooms[roomId].background,
-            music: activeRooms[roomId].music
-        });
-
-        // Update user's last active time in Firestore (or create if new)
-        try {
-            const userDocRef = doc(getPrivateCollectionRef(userId, 'profile'), userId);
-            const userDocSnap = await getDoc(userDocRef);
-
-            if (userDocSnap.exists()) {
-                await updateDoc(userDocRef, {
-                    lastActive: Date.now(),
-                    currentRoom: roomId,
-                    socketId: socket.id,
-                    username: username,
-                    avatar: avatar || userDocSnap.data().avatar
-                });
-            } else {
-                await setDoc(userDocRef, {
-                    userId: userId,
-                    username: username,
-                    email: `${userId}@airchat.com`, // Dummy email
-                    avatar: avatar || 'https://placehold.co/50x50/cccccc/333333?text=User',
-                    bio: 'No bio yet.',
-                    interests: [],
-                    giftsReceived: 0,
-                    xp: 0,
-                    vipLevel: 0,
-                    role: 'user',
-                    currentRoom: roomId,
-                    socketId: socket.id,
-                    createdAt: Date.now(),
-                    lastActive: Date.now()
-                });
-            }
-            console.log(`User ${userId} profile updated/created in Firestore.`);
-        } catch (error) {
-            console.error('Error updating/creating user profile in Firestore:', error);
-            sendCustomAlert(socket, 'Failed to update user profile.', 'error');
-        }
-    });
-
-    /**
-     * Handles incoming chat messages.
-     * @param {Object} data - Contains messageText.
-     */
-    socket.on('sendMessage', (data) => {
-        const { messageText } = data;
-        const user = activeUsers[socket.id];
-
-        if (!user || !user.roomId) {
-            sendCustomAlert(socket, 'You must join a room to send messages.', 'error');
-            return;
-        }
-
-        const message = {
-            id: Date.now().toString(),
-            userId: user.userId,
-            username: user.username,
-            text: messageText,
-            timestamp: Date.now(),
-            type: 'chat'
-        };
-
-        // Add message to room's history (in-memory, for simplicity)
-        activeRooms[user.roomId].messages.push(message);
-        // Limit message history to, e.g., 50 messages
-        if (activeRooms[user.roomId].messages.length > 50) {
-            activeRooms[user.roomId].messages.shift();
-        }
-
-        // Broadcast message to all clients in the room
-        io.to(user.roomId).emit('message', message);
-        console.log(`Message from ${user.username} in ${user.roomId}: ${messageText}`);
-
-        // Award XP for sending a message
-        user.xp = (user.xp || 0) + 1; // 1 XP per message
-        // Update user's XP in Firestore (consider batching for performance in production)
-        const userDocRef = doc(getPrivateCollectionRef(user.userId, 'profile'), user.userId);
-        updateDoc(userDocRef, { xp: user.xp }).catch(err => console.error('Error updating XP:', err));
-    });
-
-    /**
-     * Handles sending a gift.
-     * @param {Object} data - Contains toUserId, giftType.
-     */
-    socket.on('sendGift', async (data) => {
-        const { toUserId, giftType } = data;
-        const sender = activeUsers[socket.id];
-
-        if (!sender || !sender.roomId) {
-            sendCustomAlert(socket, 'You must be in a room to send gifts.', 'error');
-            return;
-        }
-
-        // Find the recipient's socket ID (if they are in the same room)
-        const recipientSocketId = Object.values(activeRooms[sender.roomId].users).find(u => u.userId === toUserId)?.socketId;
-
-        if (!recipientSocketId) {
-            sendCustomAlert(socket, `User ${toUserId} not found in this room.`, 'error');
-            return;
-        }
-
-        const giftMessage = {
-            id: Date.now().toString(),
-            senderId: sender.userId,
-            senderUsername: sender.username,
-            recipientId: toUserId,
-            giftType: giftType,
-            timestamp: Date.now(),
-            type: 'gift'
-        };
-
-        // Broadcast gift to all clients in the room
-        io.to(sender.roomId).emit('giftReceived', giftMessage);
-        console.log(`Gift from ${sender.username} to ${toUserId}: ${giftType}`);
-
-        // Update recipient's gifts received count in Firestore
-        try {
-            const recipientDocRef = doc(getPrivateCollectionRef(toUserId, 'profile'), toUserId);
-            const recipientDocSnap = await getDoc(recipientDocRef);
-            if (recipientDocSnap.exists()) {
-                const currentGifts = recipientDocSnap.data().giftsReceived || 0;
-                await updateDoc(recipientDocRef, { giftsReceived: currentGifts + 1 });
-                console.log(`Recipient ${toUserId} gifts updated in Firestore.`);
-            }
-        } catch (error) {
-            console.error('Error updating recipient gifts in Firestore:', error);
-        }
-    });
-
-    /**
-     * Handles private messages (Direct Messages).
-     * @param {Object} data - Contains recipientId, messageText.
-     */
-    socket.on('sendPrivateMessage', async (data) => {
-        const { recipientId, messageText } = data;
-        const sender = activeUsers[socket.id];
-
-        if (!sender || !sender.userId) {
-            sendCustomAlert(socket, 'You must be logged in to send private messages.', 'error');
-            return;
-        }
-
-        // Find the recipient's socket ID
-        const recipientSocket = Object.values(activeUsers).find(u => u.userId === recipientId);
-
-        if (!recipientSocket) {
-            sendCustomAlert(socket, `User ${recipientId} is not online.`, 'error');
-            // In a real app, you'd save this as an offline message.
-            return;
-        }
-
-        const privateMessage = {
-            id: Date.now().toString(),
-            senderId: sender.userId,
-            senderUsername: sender.username,
-            recipientId: recipientId,
-            text: messageText,
-            timestamp: Date.now(),
-            type: 'private'
-        };
-
-        // Send to sender
-        socket.emit('privateMessage', privateMessage);
-        // Send to recipient
-        io.to(recipientSocket.socketId).emit('privateMessage', privateMessage);
-
-        console.log(`Private message from ${sender.username} to ${recipientId}: ${messageText}`);
-
-        // Save private message to Firestore (for both sender and receiver's chat history)
-        try {
-            const senderChatRef = collection(getPrivateCollectionRef(sender.userId, 'privateChats'), recipientId);
-            await addDoc(senderChatRef, privateMessage);
-
-            const recipientChatRef = collection(getPrivateCollectionRef(recipientId, 'privateChats'), sender.userId);
-            await addDoc(recipientChatRef, privateMessage);
-
-            console.log(`Private message saved between ${sender.userId} and ${recipientId}`);
-        } catch (error) {
-            console.error('Error saving private message to Firestore:', error);
-        }
-    });
-
-    /**
-     * Handles user disconnecting.
-     */
-    socket.on('disconnect', () => {
-        const user = activeUsers[socket.id];
-        if (user && user.roomId) {
-            // Remove user from the room
-            delete activeRooms[user.roomId].users[user.userId];
-            // Notify others in the room
-            io.to(user.roomId).emit('userLeft', { userId: user.userId, username: user.username });
-            console.log(`${user.username} (${user.userId}) disconnected from room ${user.roomId}`);
-
-            // Clean up room if empty (optional)
-            if (Object.keys(activeRooms[user.roomId].users).length === 0) {
-                console.log(`Room ${user.roomId} is now empty.`);
-                // In a real app, you might delete the room or mark it inactive in Firestore.
-            }
-        }
-        delete activeUsers[socket.id]; // Remove user from active users list
-        console.log(`User disconnected: ${socket.id}`);
-    });
-
-    /**
-     * Handles server-side announcements (e.g., from an admin panel).
-     * This would typically be triggered by an admin action, not directly from a client.
-     */
-    socket.on('makeAnnouncement', (data) => {
-        const { messageText, roomId } = data;
-        if (!messageText) return;
-
-        // For simplicity, let's assume only admins can make announcements.
-        // In a real app, you'd verify the user's role/permissions.
-        const user = activeUsers[socket.id];
-        if (!user || !user.isAdmin) { // Placeholder for admin check
-            sendCustomAlert(socket, 'You are not authorized to make announcements.', 'error');
-            return;
-        }
-
-        const announcement = {
-            id: Date.now().toString(),
-            sender: 'System',
-            text: messageText,
-            timestamp: Date.now(),
-            type: 'announcement'
-        };
-
-        if (roomId && activeRooms[roomId]) {
-            io.to(roomId).emit('message', announcement); // Send to specific room
-            activeRooms[roomId].messages.push(announcement);
-        } else {
-            io.emit('message', announcement); // Send to all connected clients
-        }
-        console.log(`Announcement: ${messageText}`);
-    });
-
-    /**
-     * Handles user moderation actions (mute, kick, ban).
-     * This would also require admin/moderator permissions.
-     */
-    socket.on('moderateUser', (data) => {
-        const { targetUserId, action, roomId } = data; // action: 'mute', 'kick', 'ban'
-        const moderator = activeUsers[socket.id];
-
-        // Basic authorization check (replace with robust role-based access control)
-        if (!moderator || (!moderator.isAdmin && !moderator.isModerator)) {
-            sendCustomAlert(socket, 'You are not authorized to perform moderation actions.', 'error');
-            return;
-        }
-
-        const targetUserSocket = Object.values(activeUsers).find(u => u.userId === targetUserId && u.roomId === roomId);
-
-        if (!targetUserSocket) {
-            sendCustomAlert(socket, `User ${targetUserId} not found in this room.`, 'error');
-            return;
-        }
-
-        switch (action) {
-            case 'mute':
-                targetUserSocket.isMuted = !targetUserSocket.isMuted; // Toggle mute state
-                io.to(roomId).emit('userMuted', { userId: targetUserId, isMuted: targetUserSocket.isMuted });
-                sendCustomAlert(socket, `User ${targetUserId} has been ${targetUserSocket.isMuted ? 'muted' : 'unmuted'}.`, 'info');
-                break;
-            case 'kick':
-                // Disconnect the user from the room (but not necessarily the server)
-                io.to(targetUserSocket.socketId).emit('kickedFromRoom', { roomId });
-                io.sockets.sockets.get(targetUserSocket.socketId)?.leave(roomId);
-                delete activeRooms[roomId].users[targetUserId];
-                io.to(roomId).emit('userLeft', { userId: targetUserId, username: targetUserSocket.username });
-                sendCustomAlert(socket, `User ${targetUserId} has been kicked from the room.`, 'warning');
-                break;
-            case 'ban':
-                // In a real app, you'd mark the user as banned in Firestore/database
-                // and prevent them from joining any room. For now, just kick and notify.
-                io.to(targetUserSocket.socketId).emit('bannedFromApp', { reason: 'Violation of rules' });
-                io.sockets.sockets.get(targetUserSocket.socketId)?.disconnect(true); // Disconnect completely
-                sendCustomAlert(socket, `User ${targetUserId} has been banned.`, 'error');
-                break;
-            default:
-                sendCustomAlert(socket, 'Invalid moderation action.', 'error');
-        }
-    });
-
-    /**
-     * Handles WebRTC offer signaling.
-     * Forwards the offer from sender to target.
-     * @param {Object} data - Contains targetUserId, offer, senderId.
-     */
-    socket.on('webrtc-offer', (data) => {
-        const { targetUserId, offer, senderId } = data;
-        const targetSocket = Object.values(activeUsers).find(u => u.userId === targetUserId)?.socketId;
-
-        if (targetSocket) {
-            console.log(`Forwarding WebRTC offer from ${senderId} to ${targetUserId}`);
-            io.to(targetSocket).emit('webrtc-offer', { senderId, offer });
-        } else {
-            console.warn(`Target user ${targetUserId} not found for WebRTC offer.`);
-        }
-    });
-
-    /**
-     * Handles WebRTC answer signaling.
-     * Forwards the answer from sender to target.
-     * @param {Object} data - Contains targetUserId, answer, senderId.
-     */
-    socket.on('webrtc-answer', (data) => {
-        const { targetUserId, answer, senderId } = data;
-        const targetSocket = Object.values(activeUsers).find(u => u.userId === targetUserId)?.socketId;
-
-        if (targetSocket) {
-            console.log(`Forwarding WebRTC answer from ${senderId} to ${targetUserId}`);
-            io.to(targetSocket).emit('webrtc-answer', { senderId, answer });
-        } else {
-            console.warn(`Target user ${targetUserId} not found for WebRTC answer.`);
-        }
-    });
-
-    /**
-     * Handles WebRTC ICE candidate signaling.
-     * Forwards the candidate from sender to target.
-     * @param {Object} data - Contains targetUserId, candidate, senderId.
-     */
-    socket.on('webrtc-ice-candidate', (data) => {
-        const { targetUserId, candidate, senderId } = data;
-        const targetSocket = Object.values(activeUsers).find(u => u.userId === targetUserId)?.socketId;
-
-        if (targetSocket) {
-            console.log(`Forwarding WebRTC ICE candidate from ${senderId} to ${targetUserId}`);
-            io.to(targetSocket).emit('webrtc-ice-candidate', { senderId, candidate });
-        } else {
-            console.warn(`Target user ${targetUserId} not found for WebRTC ICE candidate.`);
-        }
-    });
-
-    /**
-     * Handles speaking status updates from clients.
-     * @param {Object} data - Contains userId and isSpeaking (boolean).
-     */
-    socket.on('speaking', (data) => {
-        const { userId, isSpeaking } = data;
-        const user = activeUsers[socket.id];
-
-        if (!user || user.userId !== userId || !user.roomId) {
-            // Ensure the speaking status is for the current user and they are in a room
-            return;
-        }
-
-        console.log(`User ${userId} in room ${user.roomId} is speaking: ${isSpeaking}`);
-        // Broadcast speaking status to all other clients in the same room
-        socket.to(user.roomId).emit('speakingStatus', { userId, isSpeaking });
-    });
-
-    // Add more Socket.IO event listeners as needed for other features
-    // (e.g., mic status updates, XP updates, honor board updates, etc.)
-});
-
-// --- Express Routes ---
-
-// API Route for user authentication (Login/Register)
-// This is a placeholder. Actual authentication logic will be in a separate controller.
-app.post('/api/auth/register', async (req, res) => {
-    // This should be handled by an auth controller
-    res.status(501).json({ message: 'Register endpoint not implemented yet.' });
-});
-
-app.post('/api/auth/login', async (req, res) => {
-    // This should be handled by an auth controller
-    res.status(501).json({ message: 'Login endpoint not implemented yet.' });
-});
-
-// API Route to fetch user profile
-app.get('/api/auth/me', async (req, res) => {
-    // In a real app, you'd get the user ID from the auth token in the request header.
-    // For now, let's use a dummy user ID or assume it's passed as a query param for testing.
-    const userId = req.query.userId || (auth.currentUser ? auth.currentUser.uid : null);
-
-    if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized: User ID missing.' });
-    }
-
-    try {
-        const userDocRef = doc(getPrivateCollectionRef(userId, 'profile'), userId);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-            res.status(200).json({ user: userDocSnap.data() });
-        } else {
-            res.status(404).json({ error: 'User profile not found.' });
-        }
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-        res.status(500).json({ error: 'Failed to fetch user profile.' });
-    }
-});
-
-// API Route to update user profile
-app.post('/api/users/:userId/profile', async (req, res) => {
-    const { userId } = req.params;
-    const updates = req.body;
-
-    // In a real app, you'd verify that the authenticated user is updating their own profile.
-    if (!userId) {
-        return res.status(400).json({ error: 'User ID is required.' });
-    }
-
-    try {
-        const userDocRef = doc(getPrivateCollectionRef(userId, 'profile'), userId);
-        await updateDoc(userDocRef, updates);
-        res.status(200).json({ message: 'Profile updated successfully.' });
-    } catch (error) {
-        console.error('Error updating user profile:', error);
-        res.status(500).json({ error: 'Failed to update user profile.' });
-    }
-});
-
-// API Route for fetching top users (Honor Board)
-app.get('/api/top-users', async (req, res) => {
-    try {
-        // Query users collection for all users (or a subset)
-        // In a real app, you'd likely have a dedicated 'users' collection at a higher level
-        // or aggregate data for top users.
-        // For now, we'll fetch from a dummy 'allUsers' collection or iterate through rooms.
-        // This is a simplified example.
-        const usersCollectionRef = collection(db, `artifacts/${appId}/public/data/allUsers`); // Example public collection
-        const q = query(usersCollectionRef); // You'd add orderBy and limit here
-        const querySnapshot = await getDocs(q);
-
-        const topUsers = [];
-        querySnapshot.forEach((doc) => {
-            topUsers.push(doc.data());
-        });
-
-        // Sort by XP or gifts if not already sorted by Firestore query
-        topUsers.sort((a, b) => (b.xp || 0) - (a.xp || 0)); // Example sorting by XP
-
-        res.status(200).json({ topUsers: topUsers.slice(0, 10) }); // Return top 10
-    } catch (error) {
-        console.error('Error fetching top users:', error);
-        res.status(500).json({ error: 'Failed to fetch top users.' });
-    }
-});
-
 
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 
-// Catch-all route for SPA (Single Page Application) or basic routing
-app.get('*', (req, res) => {
-    // If you have a SPA, you'd serve index.html here for all non-API routes.
-    // For now, it will serve static files directly from 'public'.
-    // If a specific HTML file is requested (e.g., /room.html), express.static handles it.
-    // If not found, it might return a 404 or serve a default page.
-    // For a robust SPA, you'd have more sophisticated routing.
-    res.sendFile('index.html', { root: 'public' });
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
+// Basic route for the root URL
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
+// Route for the room page (assuming it's accessed via /room?id=roomId)
+app.get('/room', (req, res) => {
+    res.sendFile(__dirname + '/public/room.html');
+});
+
+// --- In-Memory Room and User State Management ---
+// These are in-memory for quick access, but persistent data is in Firestore.
+const activeRooms = {}; // roomId -> { name, background, music, micLock, pinnedMessage, users: { userId -> userObject }, stageUsers: [], moderators: [], chatMessages: [] }
+const userSockets = {}; // userId -> socket.id (for direct messaging/signaling)
+const socketToUser = {}; // socket.id -> userId (reverse lookup)
+
+// --- Helper Functions for Firestore Interactions ---
+
+/**
+ * Fetches a user's profile from Firestore.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<Object|null>} User profile data or null if not found.
+ */
+async function getUserProfile(userId) {
+    try {
+        // Using a simplified path for user profiles. Adjust if your security rules are different.
+        const userDoc = await db.collection('users').doc(userId).get(); 
+        if (userDoc.exists) {
+            return userDoc.data();
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching user profile:', userId, error);
+        return null;
+    }
+}
+
+/**
+ * Updates a user's profile in Firestore.
+ * @param {string} userId - The ID of the user.
+ * @param {Object} updates - Object containing fields to update.
+ */
+async function updateUserProfile(userId, updates) {
+    try {
+        await db.collection('users').doc(userId).update(updates); 
+        console.log(`User ${userId} profile updated in Firestore.`);
+    } catch (error) {
+        console.error('Error updating user profile:', userId, error);
+    }
+}
+
+/**
+ * Fetches room data from Firestore.
+ * @param {string} roomId - The ID of the room.
+ * @returns {Promise<Object|null>} Room data or null if not found.
+ */
+async function getRoomData(roomId) {
+    try {
+        const roomDoc = await db.collection('rooms').doc(roomId).get(); 
+        if (roomDoc.exists) {
+            return roomDoc.data();
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching room data:', roomId, error);
+        return null;
+    }
+}
+
+/**
+ * Updates room data in Firestore.
+ * @param {string} roomId - The ID of the room.
+ * @param {Object} updates - Object containing fields to update.
+ */
+async function updateRoomData(roomId, updates) {
+    try {
+        await db.collection('rooms').doc(roomId).update(updates); 
+        console.log(`Room ${roomId} data updated in Firestore.`);
+    } catch (error) {
+        console.error('Error updating room data:', roomId, error);
+    }
+}
+
+/**
+ * Adds a chat message to Firestore.
+ * @param {string} roomId - The ID of the room.
+ * @param {Object} message - Message object.
+ */
+async function addChatMessageToFirestore(roomId, message) {
+    try {
+        await db.collection('rooms').doc(roomId).collection('messages').add(message);
+        console.log(`Chat message added to Firestore for room ${roomId}.`);
+    } catch (error) {
+        console.error('Error adding chat message to Firestore:', error);
+    }
+}
+
+// --- Socket.io Connection Handling ---
+io.on('connection', (socket) => {
+    console.log(`User connected: ${socket.id}`);
+
+    // --- User Connection / Initial Setup ---
+    socket.on('userConnected', async (userData) => {
+        const { userId, username, avatar, role, xp, giftsReceived, bio } = userData;
+        socketToUser[socket.id] = userId;
+        userSockets[userId] = socket.id;
+
+        // Update user's online status and basic profile in Firestore
+        // Use set with merge: true for initial connection to avoid overwriting existing fields
+        await db.collection('users').doc(userId).set({
+            username, avatar, role, xp, giftsReceived, bio,
+            lastActive: admin.firestore.FieldValue.serverTimestamp(),
+            isOnline: true
+        }, { merge: true });
+
+        console.log(`User ${username} (${userId}) connected and profile updated.`);
+    });
+
+    // --- Room Joining ---
+    socket.on('joinRoom', async ({ roomId, userId, username, avatar, role, xp, giftsReceived, bio }) => {
+        if (!userId || !roomId) {
+            console.warn('Join room failed: Missing userId or roomId');
+            return;
+        }
+
+        socket.join(roomId); // Add socket to the room
+        console.log(`${username} (${userId}) joined room: ${roomId}`);
+
+        // Initialize room in-memory if not exists
+        if (!activeRooms[roomId]) {
+            const roomData = await getRoomData(roomId);
+            activeRooms[roomId] = {
+                id: roomId, // Add room ID to the in-memory object
+                name: roomData?.name || `الغرفة ${roomId}`,
+                background: roomData?.background || '/assets/images/room-bg-fire.jpg',
+                music: roomData?.music || '/assets/sounds/bg-music.mp3',
+                micLock: roomData?.micLock || false,
+                pinnedMessage: roomData?.pinnedMessage || null,
+                users: {}, // Will be populated below
+                stageUsers: roomData?.stageUsers || [], // Load initial stage users
+                moderators: roomData?.moderators || [],
+                chatMessages: [] // Will fetch recent messages
+            };
+
+            // Fetch recent chat messages (e.g., last 50)
+            const messagesSnapshot = await db.collection('rooms').doc(roomId).collection('messages')
+                .orderBy('timestamp', 'desc').limit(50).get();
+            activeRooms[roomId].chatMessages = messagesSnapshot.docs.map(doc => ({
+                ...doc.data(),
+                timestamp: doc.data().timestamp ? doc.data().timestamp.toDate().getTime() : Date.now() // Convert Firestore Timestamp to JS Date ms
+            })).reverse();
+        }
+
+        // Add user to room's in-memory state
+        const userProfile = await getUserProfile(userId) || { username, avatar, role, xp, giftsReceived, bio };
+        activeRooms[roomId].users[userId] = {
+            id: userId,
+            username: userProfile.username,
+            avatar: userProfile.avatar,
+            role: userProfile.role || 'member',
+            xp: userProfile.xp || 0,
+            giftsReceived: userProfile.giftsReceived || 0,
+            bio: userProfile.bio || '',
+            isOnline: true,
+            isMuted: false, // Initial state
+            isSpeaking: false, // Initial state
+            isOnStage: activeRooms[roomId].stageUsers.some(u => u.id === userId), // Check if user is already on stage
+            canMicAscent: userProfile.canMicAscent !== false, // Default to true
+            lastActive: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Broadcast user joined event to the room
+        io.to(roomId).emit('userJoined', activeRooms[roomId].users[userId]);
+        io.to(roomId).emit('userJoinedRoom', activeRooms[roomId].users[userId]); // For WebRTC specific listener
+
+        // Send full room state to the newly joined user
+        const currentRoomUsersArray = Object.values(activeRooms[roomId].users);
+        const roomStateForClient = {
+            id: roomId,
+            name: activeRooms[roomId].name,
+            background: activeRooms[roomId].background,
+            music: activeRooms[roomId].music,
+            micLock: activeRooms[roomId].micLock,
+            pinnedMessage: activeRooms[roomId].pinnedMessage,
+            users: currentRoomUsersArray.reduce((acc, user) => { acc[user.id] = user; return acc; }, {}), // Send as map
+            stageUsers: activeRooms[roomId].stageUsers,
+            moderators: activeRooms[roomId].moderators,
+            chatMessages: activeRooms[roomId].chatMessages,
+            onlineCount: currentRoomUsersArray.length,
+            stayDuration: 0 // Client will manage this
+        };
+        socket.emit('roomStateUpdate', roomStateForClient);
+
+        // Update online count for everyone
+        io.to(roomId).emit('onlineCountUpdate', Object.keys(activeRooms[roomId].users).length);
+        console.log(`User ${username} (${userId}) successfully joined room ${roomId}.`);
+    });
+
+    // --- User Exiting Room ---
+    socket.on('exitRoom', async ({ roomId }) => {
+        const userId = socketToUser[socket.id];
+        if (!userId || !roomId || !activeRooms[roomId] || !activeRooms[roomId].users[userId]) {
+            console.warn(`Exit room failed for ${userId} from ${roomId}: user or room not found.`);
+            return;
+        }
+
+        socket.leave(roomId);
+        console.log(`User ${userId} left room: ${roomId}`);
+
+        // Remove user from room's in-memory state
+        const userWhoLeft = activeRooms[roomId].users[userId];
+        delete activeRooms[roomId].users[userId];
+
+        // Remove user from stage if they were on it
+        activeRooms[roomId].stageUsers = activeRooms[roomId].stageUsers.filter(u => u.id !== userId);
+
+        // Broadcast user left event
+        io.to(roomId).emit('userLeft', userId);
+        io.to(roomId).emit('userLeftRoom', userId); // For WebRTC specific listener
+        io.to(roomId).emit('onlineCountUpdate', Object.keys(activeRooms[roomId].users).length);
+
+        // If no users left in the room, clean up the room from memory (optional, based on persistence needs)
+        if (Object.keys(activeRooms[roomId].users).length === 0) {
+            delete activeRooms[roomId];
+            console.log(`Room ${roomId} is now empty and removed from activeRooms.`);
+        }
+        
+        // Mark user as offline in Firestore
+        await updateUserProfile(userId, { isOnline: false, lastActive: admin.firestore.FieldValue.serverTimestamp() });
+        console.log(`User ${userId} marked offline after exiting room.`);
+    });
+
+    // --- Disconnect Handling ---
+    socket.on('disconnect', async () => {
+        const userId = socketToUser[socket.id];
+        if (!userId) {
+            console.log(`Disconnected socket ${socket.id} (no associated user).`);
+            return;
+        }
+
+        console.log(`User disconnected: ${userId} (${socket.id})`);
+
+        // Find which room the user was in and remove them
+        let roomIdToLeave = null;
+        for (const rId in activeRooms) {
+            if (activeRooms[rId].users[userId]) {
+                roomIdToLeave = rId;
+                break;
+            }
+        }
+
+        if (roomIdToLeave) {
+            socket.leave(roomIdToLeave);
+            const userWhoLeft = activeRooms[roomIdToLeave].users[userId];
+            delete activeRooms[roomIdToLeave].users[userId];
+
+            // Remove user from stage if they were on it
+            activeRooms[roomIdToLeave].stageUsers = activeRooms[roomIdToLeave].stageUsers.filter(u => u.id !== userId);
+
+            io.to(roomIdToLeave).emit('userLeft', userId);
+            io.to(roomIdToLeave).emit('userLeftRoom', userId); // For WebRTC specific listener
+            io.to(roomIdToLeave).emit('onlineCountUpdate', Object.keys(activeRooms[roomIdToLeave].users).length);
+
+            // Update user's online status in Firestore
+            await updateUserProfile(userId, { isOnline: false, lastActive: admin.firestore.FieldValue.serverTimestamp() });
+            console.log(`User ${userId} removed from room ${roomIdToLeave} and marked offline.`);
+
+            if (Object.keys(activeRooms[roomIdToLeave].users).length === 0) {
+                delete activeRooms[roomIdToLeave];
+                console.log(`Room ${roomIdToLeave} is now empty and removed from activeRooms.`);
+            }
+        } else {
+            // If user was not in any active room, just mark them offline
+            await updateUserProfile(userId, { isOnline: false, lastActive: admin.firestore.FieldValue.serverTimestamp() });
+            console.log(`User ${userId} marked offline (not in an active room).`);
+        }
+
+        delete userSockets[userId];
+        delete socketToUser[socket.id];
+    });
+
+    // --- Chat Messaging ---
+    socket.on('sendChatMessage', async ({ text, roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        if (!userId || !room || !room.users[userId]) {
+            console.warn('Chat message failed: User or room not found.');
+            return;
+        }
+
+        const user = room.users[userId];
+        const message = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+            userId: user.id,
+            username: user.username,
+            avatar: user.avatar,
+            text: text,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            type: 'chat',
+            role: user.role // Include role for UI styling
+        };
+
+        io.to(roomId).emit('chatMessage', message); // Broadcast to room
+        await addChatMessageToFirestore(roomId, message);
+        console.log(`Chat message from ${user.username} in room ${roomId}: ${text}`);
+    });
+
+    socket.on('sendPrivateMessage', async ({ recipientId, text, roomId }) => {
+        const senderId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        if (!senderId || !room || !room.users[senderId] || !room.users[recipientId]) {
+            console.warn('Private message failed: Sender or recipient not found.');
+            return;
+        }
+
+        const sender = room.users[senderId];
+        const recipient = room.users[recipientId];
+
+        const message = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+            senderId: sender.id,
+            senderUsername: sender.username,
+            recipientId: recipient.id,
+            recipientUsername: recipient.username,
+            text: text,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            type: 'private'
+        };
+
+        // Send to sender (for their own chat window)
+        io.to(userSockets[senderId]).emit('privateMessage', message);
+        // Send to recipient
+        io.to(userSockets[recipientId]).emit('privateMessage', message);
+
+        // Optionally, save private messages to a separate collection or within user profiles
+        // await db.collection('privateMessages').add(message); // Example: if you want a global private message collection
+        console.log(`Private message from ${sender.username} to ${recipient.username}: ${text}`);
+    });
+
+    // --- WebRTC Signaling ---
+    socket.on('webrtcSignal', (data) => {
+        // data: { to: targetUserId, from: senderUserId, signal: { sdp: ..., candidate: ... } }
+        const targetSocketId = userSockets[data.to];
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('webrtcSignal', data);
+            // console.log(`WebRTC signal from ${data.from} to ${data.to} (${data.signal.sdp ? data.signal.sdp.type : 'candidate'})`);
+        } else {
+            console.warn(`Target user ${data.to} not found for WebRTC signal.`);
+        }
+    });
+
+    socket.on('speaking', ({ userId, isSpeaking }) => {
+        const roomId = Object.keys(activeRooms).find(rId => activeRooms[rId].users[userId]);
+        if (roomId) {
+            if (activeRooms[roomId].users[userId]) {
+                activeRooms[roomId].users[userId].isSpeaking = isSpeaking;
+                io.to(roomId).emit('speakingStatus', { userId, isSpeaking });
+                // console.log(`User ${userId} in room ${roomId} is speaking: ${isSpeaking}`);
+            }
+        }
+    });
+
+    // --- Mic Control & Stage Management ---
+    socket.on('requestMicAscent', async ({ userId, roomId }) => {
+        const room = activeRooms[roomId];
+        const user = room?.users[userId];
+        if (!room || !user) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micUp', success: false, message: 'الغرفة أو المستخدم غير موجود.' });
+            return;
+        }
+
+        if (room.micLock && user.role !== 'admin' && user.role !== 'moderator') {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micUp', success: false, message: 'المايكات مقفلة حاليًا.' });
+            return;
+        }
+        if (user.canMicAscent === false) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micUp', success: false, message: 'تم منعك من صعود المايك.' });
+            return;
+        }
+        if (room.stageUsers.some(u => u.id === userId)) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micUp', success: false, message: 'أنت بالفعل على المايك.' });
+            return;
+        }
+
+        // Find an empty mic slot (1-10)
+        let micIndex = -1;
+        for (let i = 1; i <= 10; i++) {
+            if (!room.stageUsers.some(u => u.micIndex === i)) {
+                micIndex = i;
+                break;
+            }
+        }
+
+        if (micIndex !== -1) {
+            user.isOnStage = true;
+            user.micIndex = micIndex;
+            room.stageUsers.push(user);
+            // Sort stage users by micIndex
+            room.stageUsers.sort((a, b) => a.micIndex - b.micIndex);
+
+            io.to(roomId).emit('roomStateUpdate', {
+                ...room,
+                users: Object.values(room.users) // Send users as array for client
+            });
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micUp', success: true, message: 'تم صعودك إلى المايك.' });
+            io.to(roomId).emit('chatMessage', { type: 'system', text: `${user.username} صعد إلى المايك رقم ${micIndex}.` });
+            console.log(`User ${user.username} moved to mic ${micIndex} in room ${roomId}.`);
+            await updateRoomData(roomId, { stageUsers: room.stageUsers.map(u => ({ id: u.id, micIndex: u.micIndex })) }); // Save stage users to Firestore
+        } else {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micUp', success: false, message: 'لا توجد كراسي مايك شاغرة حاليًا.' });
+        }
+    });
+
+    socket.on('requestMicDescent', async ({ userId, roomId }) => {
+        const room = activeRooms[roomId];
+        const user = room?.users[userId];
+        if (!room || !user) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micDown', success: false, message: 'الغرفة أو المستخدم غير موجود.' });
+            return;
+        }
+
+        const index = room.stageUsers.findIndex(u => u.id === userId);
+        if (index !== -1) {
+            user.isOnStage = false;
+            delete user.micIndex;
+            room.stageUsers.splice(index, 1); // Remove from stageUsers
+
+            io.to(roomId).emit('roomStateUpdate', {
+                ...room,
+                users: Object.values(room.users)
+            });
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micDown', success: true, message: 'تم نزولك من المايك.' });
+            io.to(roomId).emit('chatMessage', { type: 'system', text: `${user.username} نزل من المايك.` });
+            console.log(`User ${user.username} descended from mic in room ${roomId}.`);
+            await updateRoomData(roomId, { stageUsers: room.stageUsers.map(u => ({ id: u.id, micIndex: u.micIndex })) }); // Save stage users to Firestore
+        } else {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'micDown', success: false, message: 'أنت لست على المايك.' });
+        }
+    });
+
+    socket.on('toggleMicLock', async ({ roomId, lock }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'toggleMicLock', success: false, message: 'ليس لديك صلاحية لقفل/فتح المايكات.' });
+            return;
+        }
+
+        room.micLock = lock;
+        io.to(roomId).emit('micLockUpdate', lock); // Notify all clients
+        io.to(roomId).emit('chatMessage', { type: 'system', text: `قام المشرف ${requester.username} بـ ${lock ? 'قفل' : 'فتح'} المايكات.` });
+        console.log(`Room ${roomId} mic lock set to: ${lock}`);
+        await updateRoomData(roomId, { micLock: lock }); // Save to Firestore
+    });
+
+    socket.on('transferUserMic', async ({ targetUserId, newMicIndex, roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+        const targetUser = room?.users[targetUserId];
+
+        if (!room || !requester || !targetUser || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'transferMic', success: false, message: 'ليس لديك صلاحية لنقل المستخدمين.' });
+            return;
+        }
+        if (newMicIndex < 1 || newMicIndex > 10) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'transferMic', success: false, message: 'رقم الكرسي غير صالح.' });
+            return;
+        }
+
+        // Check if target mic index is already occupied
+        if (room.stageUsers.some(u => u.micIndex === newMicIndex && u.id !== targetUserId)) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'transferMic', success: false, message: `الكرسي رقم ${newMicIndex} مشغول بالفعل.` });
+            return;
+        }
+
+        // Remove target user from current stage position if any
+        room.stageUsers = room.stageUsers.filter(u => u.id !== targetUserId);
+
+        // Add/update target user to new stage position
+        targetUser.isOnStage = true;
+        targetUser.micIndex = newMicIndex;
+        room.stageUsers.push(targetUser);
+        room.stageUsers.sort((a, b) => a.micIndex - b.micIndex); // Re-sort
+
+        io.to(roomId).emit('roomStateUpdate', {
+            ...room,
+            users: Object.values(room.users)
+        });
+        io.to(roomId).emit('chatMessage', { type: 'system', text: `قام المشرف ${requester.username} بنقل ${targetUser.username} إلى المايك رقم ${newMicIndex}.` });
+        socket.emit('moderationUpdate', { targetUserId: userId, action: 'transferMic', success: true, message: `تم نقل ${targetUser.username} إلى الكرسي رقم ${newMicIndex}.` });
+        console.log(`User ${targetUser.username} transferred to mic ${newMicIndex} in room ${roomId}.`);
+        await updateRoomData(roomId, { stageUsers: room.stageUsers.map(u => ({ id: u.id, micIndex: u.micIndex })) }); // Save to Firestore
+    });
+
+    socket.on('preventMicAscent', async ({ targetUserId, prevent, roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+        const targetUser = room?.users[targetUserId];
+
+        if (!room || !requester || !targetUser || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'preventMicAscent', success: false, message: 'ليس لديك صلاحية لمنع/السماح بصعود المايك.' });
+            return;
+        }
+
+        targetUser.canMicAscent = !prevent; // true if allow, false if prevent
+        await updateUserProfile(targetUserId, { canMicAscent: targetUser.canMicAscent });
+        io.to(roomId).emit('roomStateUpdate', {
+            ...room,
+            users: Object.values(room.users)
+        }); // Update all clients with user's new canMicAscent status
+        io.to(roomId).emit('chatMessage', { type: 'system', text: `قام المشرف ${requester.username} بـ ${prevent ? 'منع' : 'السماح لـ'} ${targetUser.username} من صعود المايك.` });
+        socket.emit('moderationUpdate', { targetUserId: userId, action: 'preventMicAscent', success: true, message: `تم ${prevent ? 'منع' : 'السماح لـ'} ${targetUser.username} من صعود المايك.` });
+        console.log(`User ${targetUser.username} mic ascent prevented: ${prevent} in room ${roomId}.`);
+    });
+
+    // --- Moderation Actions (Mute, Kick, Ban, Assign Moderator) ---
+    socket.on('moderateUser', async ({ targetUserId, action, roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+        const targetUser = room?.users[targetUserId];
+
+        if (!room || !requester || !targetUser) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action, success: false, message: 'المستخدم أو الغرفة غير موجودة.' });
+            return;
+        }
+
+        // Basic authorization checks
+        const isRequesterAdmin = requester.role === 'admin';
+        const isRequesterModerator = requester.role === 'moderator' || isRequesterAdmin;
+        const isTargetAdmin = targetUser.role === 'admin';
+        const isTargetModerator = targetUser.role === 'moderator';
+
+        if (!isRequesterModerator || (!isRequesterAdmin && (isTargetAdmin || isTargetModerator))) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action, success: false, message: 'ليس لديك صلاحية للقيام بهذا الإجراء.' });
+            return;
+        }
+
+        let success = false;
+        let message = '';
+
+        switch (action) {
+            case 'mute':
+                targetUser.isMuted = true;
+                io.to(roomId).emit('micStateUpdate', { userId: targetUserId, isMuted: true });
+                message = `تم كتم صوت ${targetUser.username}.`;
+                success = true;
+                break;
+            case 'unmute':
+                targetUser.isMuted = false;
+                io.to(roomId).emit('micStateUpdate', { userId: targetUserId, isMuted: false });
+                message = `تم إلغاء كتم صوت ${targetUser.username}.`;
+                success = true;
+                break;
+            case 'kick':
+                // Remove from room and notify
+                socket.to(userSockets[targetUserId]).emit('kickedFromRoom', { roomId, reason: 'تم طردك من الغرفة.' });
+                if (userSockets[targetUserId]) {
+                    io.sockets.sockets.get(userSockets[targetUserId])?.leave(roomId);
+                }
+                delete room.users[targetUserId];
+                room.stageUsers = room.stageUsers.filter(u => u.id !== targetUserId);
+                io.to(roomId).emit('userLeft', targetUserId); // Broadcast as user left
+                io.to(roomId).emit('userLeftRoom', targetUserId); // For WebRTC cleanup
+                io.to(roomId).emit('onlineCountUpdate', Object.keys(room.users).length);
+                message = `تم طرد ${targetUser.username} من الغرفة.`;
+                success = true;
+                break;
+            case 'ban':
+                // Mark user as banned in Firestore and kick them
+                await updateUserProfile(targetUserId, { isBanned: true });
+                socket.to(userSockets[targetUserId]).emit('bannedFromApp', { reason: 'تم حظرك من التطبيق.' });
+                if (userSockets[targetUserId]) {
+                    io.sockets.sockets.get(userSockets[targetUserId])?.disconnect(true); // Force disconnect
+                }
+                // Also remove from active room if they were in one
+                delete room.users[targetUserId];
+                room.stageUsers = room.stageUsers.filter(u => u.id !== targetUserId);
+                io.to(roomId).emit('userLeft', targetUserId);
+                io.to(roomId).emit('userLeftRoom', targetUserId);
+                io.to(roomId).emit('onlineCountUpdate', Object.keys(room.users).length);
+                message = `تم حظر ${targetUser.username} من التطبيق.`;
+                success = true;
+                break;
+            case 'assignModerator':
+                targetUser.role = 'moderator';
+                if (!room.moderators.includes(targetUserId)) {
+                    room.moderators.push(targetUserId);
+                }
+                await updateUserProfile(targetUserId, { role: 'moderator' });
+                io.to(roomId).emit('moderatorListUpdate', room.moderators); // Update mod list for clients
+                message = `تم تعيين ${targetUser.username} مشرفًا.`;
+                success = true;
+                break;
+            case 'removeModerator':
+                targetUser.role = 'member';
+                room.moderators = room.moderators.filter(id => id !== targetUserId);
+                await updateUserProfile(targetUserId, { role: 'member' });
+                io.to(roomId).emit('moderatorListUpdate', room.moderators);
+                message = `تم إزالة ${targetUser.username} من المشرفين.`;
+                success = true;
+                break;
+            default:
+                message = 'إجراء إدارة غير معروف.';
+                break;
+        }
+
+        if (success) {
+            // After any moderation action that changes room state, broadcast a full update
+            io.to(roomId).emit('roomStateUpdate', {
+                ...room,
+                users: Object.values(room.users)
+            });
+            io.to(roomId).emit('chatMessage', { type: 'system', text: `قام المشرف ${requester.username} بتنفيذ إجراء: ${message}` });
+        }
+        socket.emit('moderationUpdate', { targetUserId, action, success, message });
+    });
+
+    socket.on('muteAllUsers', async ({ roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'muteAllUsers', success: false, message: 'ليس لديك صلاحية لكتم جميع المستخدمين.' });
+            return;
+        }
+
+        for (const uId in room.users) {
+            if (uId !== userId && room.users[uId].role === 'member') { // Mute only members, not self or other mods/admins
+                room.users[uId].isMuted = true;
+                io.to(roomId).emit('micStateUpdate', { userId: uId, isMuted: true });
+            }
+        }
+        io.to(roomId).emit('chatMessage', { type: 'system', text: `قام المشرف ${requester.username} بكتم جميع المستخدمين.` });
+        io.to(roomId).emit('roomStateUpdate', {
+            ...room,
+            users: Object.values(room.users)
+        }); // Send full update to sync mute states
+        socket.emit('moderationUpdate', { targetUserId: userId, action: 'muteAllUsers', success: true, message: 'تم كتم جميع المستخدمين.' });
+    });
+
+    socket.on('makeAnnouncement', async ({ text, roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'makeAnnouncement', success: false, message: 'ليس لديك صلاحية لإرسال إعلانات.' });
+            return;
+        }
+
+        const announcementMessage = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+            userId: requester.id,
+            username: requester.username,
+            text: text,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            type: 'announcement'
+        };
+        io.to(roomId).emit('chatMessage', announcementMessage);
+        await addChatMessageToFirestore(roomId, announcementMessage);
+        socket.emit('moderationUpdate', { targetUserId: userId, action: 'makeAnnouncement', success: true, message: 'تم إرسال الإعلان.' });
+        console.log(`Announcement in room ${roomId}: ${text}`);
+    });
+
+    socket.on('pinMessage', async ({ message, roomId }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('moderationUpdate', { targetUserId: userId, action: 'pinMessage', success: false, message: 'ليس لديك صلاحية لتثبيت الرسائل.' });
+            return;
+        }
+
+        room.pinnedMessage = message || null; // Null to unpin
+        io.to(roomId).emit('pinnedMessageUpdate', room.pinnedMessage);
+        await updateRoomData(roomId, { pinnedMessage: room.pinnedMessage });
+        socket.emit('moderationUpdate', { targetUserId: userId, action: 'pinMessage', success: true, message: message ? 'تم تثبيت الرسالة.' : 'تم إلغاء تثبيت الرسالة.' });
+        console.log(`Pinned message in room ${roomId}: ${message}`);
+    });
+
+    socket.on('reportUser', async ({ targetUserId, reason, reporterId, roomId }) => {
+        const room = activeRooms[roomId];
+        const reporter = room?.users[reporterId];
+        const targetUser = room?.users[targetUserId];
+
+        if (!room || !reporter || !targetUser) {
+            socket.emit('reportStatus', { success: false, message: 'المستخدم أو الغرفة غير موجودة.' });
+            return;
+        }
+
+        const report = {
+            reporterId,
+            reporterUsername: reporter.username,
+            targetUserId,
+            targetUsername: targetUser.username,
+            reason,
+            roomId,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'pending' // pending, reviewed, resolved
+        };
+
+        try {
+            await db.collection('reports').add(report);
+            socket.emit('reportStatus', { success: true, message: 'تم إرسال بلاغك، شكراً لك.' });
+            // Optionally, notify moderators
+            io.to(roomId).emit('chatMessage', { type: 'system', text: `تم تلقي بلاغ عن ${targetUser.username}. سيتم مراجعته.` });
+            console.log(`Report received for ${targetUser.username} in room ${roomId}. Reason: ${reason}`);
+        } catch (error) {
+            console.error('Error saving report to Firestore:', error);
+            socket.emit('reportStatus', { success: false, message: 'فشل إرسال البلاغ.' });
+        }
+    });
+
+    // --- Gift Sending ---
+    socket.on('sendGift', async ({ giftId, recipientId, roomId }) => {
+        const senderId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const sender = room?.users[senderId];
+        const recipient = room?.users[recipientId]; // Could be 'room' or a specific userId
+
+        if (!room || !sender) {
+            socket.emit('giftStatus', { success: false, message: 'المرسل أو الغرفة غير موجودة.' });
+            return;
+        }
+
+        // Dummy gift data (should be fetched from a database in a real app)
+        const allGifts = {
+            'rose': { id: 'rose', name: 'وردة', price: 100, category: 'romantic' },
+            'car': { id: 'car', name: 'سيارة', price: 5000, category: 'luxury' },
+            'laugh': { id: 'laugh', name: 'ضحكة', price: 50, category: 'funny' },
+            'dog': { id: 'dog', name: 'كلب', price: 200, category: 'animals' },
+            'diamond': { id: 'diamond', name: 'ماسة', price: 10000, category: 'luxury' },
+            'heart': { id: 'heart', name: 'قلب', price: 150, category: 'romantic' },
+            'clown': { id: 'clown', name: 'مهرج', price: 80, category: 'funny' },
+            'cat': { id: 'cat', name: 'قطة', price: 250, category: 'animals' },
+        };
+        const gift = allGifts[giftId];
+
+        if (!gift) {
+            socket.emit('giftStatus', { success: false, message: 'الهدية غير موجودة.' });
+            return;
+        }
+
+        // --- Implement currency check and deduction here ---
+        // For example:
+        // const senderProfile = await getUserProfile(senderId);
+        // if (senderProfile.coins < gift.price) {
+        //     socket.emit('giftStatus', { success: false, message: 'ليس لديك عملات كافية.' });
+        //     return;
+        // }
+        // await updateUserProfile(senderId, { coins: admin.firestore.FieldValue.increment(-gift.price) });
+
+        // Update sender's XP (example: 1 XP per 10 coins spent)
+        sender.xp = (sender.xp || 0) + Math.floor(gift.price / 10);
+        await updateUserProfile(senderId, { xp: sender.xp });
+        io.to(userSockets[senderId]).emit('userStatsUpdate', { xp: sender.xp, level: sender.level, giftsReceived: sender.giftsReceived });
+
+
+        const giftData = {
+            senderId: sender.id,
+            senderUsername: sender.username,
+            giftType: gift.name,
+            giftPrice: gift.price,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            roomId: roomId,
+            recipientId: recipientId === 'room' ? null : recipientId,
+            recipientUsername: recipientId === 'room' ? 'الغرفة' : (recipient ? recipient.username : 'مجهول')
+        };
+
+        if (recipientId === 'room') {
+            // Global gift to room
+            io.to(roomId).emit('giftReceived', giftData);
+            io.to(roomId).emit('chatMessage', { type: 'gift', senderUsername: sender.username, recipientUsername: 'الغرفة', giftType: gift.name });
+            console.log(`Gift ${gift.name} sent to room ${roomId} by ${sender.username}.`);
+        } else if (recipient) {
+            // Gift to specific user
+            // Update recipient's gifts received
+            recipient.giftsReceived = (recipient.giftsReceived || 0) + 1;
+            await updateUserProfile(recipientId, { giftsReceived: recipient.giftsReceived });
+            // Notify recipient directly
+            io.to(userSockets[recipientId]).emit('giftReceived', giftData);
+            // Update recipient's stats on their client if they are online
+            io.to(userSockets[recipientId]).emit('userStatsUpdate', { xp: recipient.xp, level: recipient.level, giftsReceived: recipient.giftsReceived });
+
+            io.to(roomId).emit('chatMessage', { type: 'gift', senderUsername: sender.username, recipientUsername: recipient.username, giftType: gift.name });
+            console.log(`Gift ${gift.name} sent to ${recipient.username} by ${sender.username} in room ${roomId}.`);
+        } else {
+            socket.emit('giftStatus', { success: false, message: 'المستلم غير موجود.' });
+            return;
+        }
+
+        // Optionally, save gift transaction to Firestore
+        await db.collection('giftTransactions').add(giftData);
+        socket.emit('giftStatus', { success: true, message: `تم إرسال ${gift.name}.` });
+
+        // Update honor board and top users periodically or on gift events
+        // (This would typically be a scheduled job or triggered by significant events)
+        // For now, let's simulate a periodic update or trigger it here for demo
+        updateTopUsersAndHonorBoard(roomId);
+    });
+
+    // --- Utility for Top Users and Honor Board (Server-side) ---
+    async function updateTopUsersAndHonorBoard(roomId) {
+        // Fetch users from Firestore based on XP for Top Users
+        const topUsersSnapshot = await db.collection('users')
+            .orderBy('xp', 'desc')
+            .limit(5)
+            .get();
+        const topUsers = topUsersSnapshot.docs.map(doc => doc.data());
+        io.to(roomId).emit('topUsersUpdate', topUsers);
+
+        // Fetch users from Firestore based on giftsReceived for Honor Board
+        const honorBoardSnapshot = await db.collection('users')
+            .orderBy('giftsReceived', 'desc')
+            .limit(3)
+            .get();
+        const honorBoard = honorBoardSnapshot.docs.map(doc => doc.data());
+        io.to(roomId).emit('honorBoardUpdate', honorBoard);
+    }
 });
 
 
 // --- Start the Server ---
-const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`Access frontend at http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Visit http://localhost:${PORT}`);
 });
