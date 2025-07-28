@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AirChat - نكسس برايم</title>
+    <title>AirChat - دردشة خاصة</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts - Cairo for general text, Orbitron for futuristic titles, Syncopate for tech details -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Orbitron:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Custom Global Styles (if any, though most will be embedded here for this design) -->
-    <link rel="stylesheet" href="./css/style.css">
+    <!-- Google Fonts - Cairo for general text, Orbitron for futuristic titles -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Base styles for the entire page - Nexus Prime: The Interstellar Hub Theme */
+        /* Base styles for the entire page - Crystal Communication Oasis Theme */
         body {
             font-family: 'Cairo', sans-serif;
             direction: rtl;
-            background: linear-gradient(135deg, #000008 0%, #03030F 50%, #000008 100%); /* Ultra deep space gradient */
-            color: #E6F0FF; /* Lighter, more vibrant soft text color */
+            background: linear-gradient(135deg, #02001A 0%, #000000 50%, #02001A 100%); /* Deep cosmic gradient */
+            color: #E0E7FF; /* Soft white for text */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: background 2s ease-in-out;
             position: relative;
+            transition: background 2s ease-in-out;
         }
 
-        /* Dynamic background - Interstellar Nebula & Particle Field */
+        /* Dynamic background - Crystal Nebula & Energy Flow */
         body::before {
             content: '';
             position: fixed;
@@ -36,38 +34,37 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(0, 255, 255, 0.1), transparent 50%), /* Intense Cyan energy pulse */
-                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.1), transparent 50%), /* Intense Purple energy pulse */
-                linear-gradient(60deg, rgba(52, 211, 153, 0.06), transparent 60%), /* Stronger Green subtle streak */
-                linear-gradient(-60deg, rgba(239, 68, 68, 0.06), transparent 60%); /* Stronger Red subtle streak */
-            background-size: 250% 250%; /* Even larger gradients for smoother, grander drift */
-            animation: cosmic-luminous-drift 70s infinite alternate ease-in-out;
+                radial-gradient(circle at 20% 30%, rgba(0, 200, 255, 0.08), transparent 55%), /* Cyan crystal glow */
+                radial-gradient(circle at 80% 70%, rgba(150, 0, 255, 0.08), transparent 55%), /* Purple crystal glow */
+                linear-gradient(45deg, rgba(0, 255, 255, 0.02), transparent 50%),
+                linear-gradient(-45deg, rgba(255, 0, 255, 0.02), transparent 50%);
+            background-size: 300% 300%; /* Larger for smooth parallax/drift */
+            animation: cosmic-drift 80s infinite alternate ease-in-out;
             z-index: -1;
             pointer-events: none;
         }
 
-        @keyframes cosmic-luminous-drift {
+        @keyframes cosmic-drift {
             0% { background-position: 0% 0%; opacity: 1; }
             50% { background-position: 100% 100%; opacity: 0.95; }
             100% { background-position: 0% 0%; opacity: 1; }
         }
 
-        /* Glassmorphism effect base - Holographic Glass */
+        /* Glassmorphism Panel - Crystal Panels */
         .glass-panel {
-            background-color: rgba(255, 255, 255, 0.02); /* More visible white transparency */
-            backdrop-filter: blur(60px) saturate(350%); /* Extremely strong blur and saturation */
-            border: 1px solid rgba(255, 255, 255, 0.12); /* More defined, glowing border */
-            border-radius: 3rem; /* Even larger, softer rounded corners */
-            box-shadow: 0 40px 120px 0 rgba(0, 0, 0, 1); /* Deeper, more diffused shadow */
-            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1.2); /* Smooth, springy transition */
+            background-color: rgba(255, 255, 255, 0.03); /* Slightly more opaque glass */
+            backdrop-filter: blur(70px) saturate(400%); /* Intense blur and saturation */
+            border: 2px solid rgba(255, 255, 255, 0.15); /* Stronger, glowing border */
+            border-radius: 3.5rem; /* Very rounded corners */
+            box-shadow: 0 50px 150px 0 rgba(0, 0, 0, 1.5); /* Deep, diffused shadow */
+            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1.2);
             position: relative;
             overflow: hidden;
         }
         .glass-panel:hover {
-            box-shadow: 0 45px 130px 0 rgba(0, 0, 0, 1.2);
-            transform: translateY(-5px); /* More pronounced lift on hover */
+            transform: translateY(-8px);
+            box-shadow: 0 60px 180px 0 rgba(0, 0, 0, 1.8);
         }
-        /* Inner glow effect for glass panels - more vibrant */
         .glass-panel::before {
             content: '';
             position: absolute;
@@ -75,132 +72,61 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.1), transparent 80%); /* Stronger inner cyan glow */
-            opacity: 0;
-            transition: opacity 0.7s ease;
-            z-index: 0;
-        }
-        .glass-panel:hover::before {
-            opacity: 1;
-        }
-        /* Subtle texture/noise overlay for depth */
-        .glass-panel::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.05"/></svg>') repeat;
-            opacity: 0.1;
-            pointer-events: none;
-            z-index: 1;
+            background: linear-gradient(45deg, rgba(0, 255, 255, 0.05), rgba(150, 0, 255, 0.05));
+            opacity: 0.8;
+            z-index: -1;
+            filter: blur(5px);
         }
 
-        /* Neon Glow colors - even more vibrant and layered */
-        .neon-cyan { color: #00E5FF; text-shadow: 0 0 25px #00E5FF, 0 0 50px rgba(0, 229, 255, 1); }
-        .neon-green { color: #34D399; text-shadow: 0 0 25px #34D399, 0 0 50px rgba(52, 211, 153, 1); }
-        .neon-purple { color: #8B5CF6; text-shadow: 0 0 25px #8B5CF6, 0 0 50px rgba(139, 92, 246, 1); }
-        .neon-red { color: #EF4444; text-shadow: 0 0 25px #EF4444, 0 0 50px rgba(239, 68, 68, 1); }
-
-        /* General button styling - Hyper-Interactive */
-        .btn-primary {
-            background: linear-gradient(45deg, #00E5FF, #007ACC); /* Cyan gradient */
-            color: white;
-            font-weight: bold;
-            padding: 16px 35px;
-            border-radius: 2.25rem;
-            box-shadow: 0 8px 25px rgba(0, 229, 255, 0.7);
-            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            text-shadow: 0 0 6px rgba(0,0,0,0.8);
-            border: none;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            z-index: 10; /* Ensure button is above its own glow */
-        }
-        .btn-primary::before { /* Inner ripple/glow */
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transition: width 0.5s ease, height 0.5s ease, top 0.5s ease, left 0.5s ease;
-            transform: translate(-50%, -50%);
-            z-index: 0;
-        }
-        .btn-primary:hover::before {
-            width: 250%;
-            height: 250%;
-            top: -75%;
-            left: -75%;
-        }
-        .btn-primary span, .btn-primary i {
-            position: relative;
-            z-index: 1;
-        }
-        .btn-primary:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 35px rgba(0, 229, 255, 1);
-            background: linear-gradient(45deg, #00F0FF, #0088DD);
-        }
-
-        /* Header specific styles - Ultra Sleek */
+        /* Header specific styles */
         header {
             @apply glass-panel;
-            background-color: rgba(255, 255, 255, 0.012);
-            backdrop-filter: blur(18px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-            padding: 1.8rem 3.5rem;
+            background-color: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.5);
+            padding: 1.5rem 3rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
             z-index: 100;
-            border-radius: 0 0 3rem 3rem;
+            border-radius: 0 0 2.75rem 2.75rem;
         }
         header .logo {
             font-family: 'Orbitron', sans-serif;
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 700;
             color: #00E5FF;
-            text-shadow: 0 0 18px #00E5FF, 0 0 35px rgba(0, 229, 255, 1);
-            letter-spacing: 5px;
-            transition: all 0.6s ease;
+            text-shadow: 0 0 15px #00E5FF, 0 0 30px rgba(0, 229, 255, 0.9);
+            letter-spacing: 4px;
+            transition: all 0.5s ease;
         }
         header .logo:hover {
-            transform: scale(1.12);
+            transform: scale(1.1);
         }
         header .user-profile {
             display: flex;
             align-items: center;
-            gap: 1.8rem;
+            gap: 1.5rem;
             cursor: pointer;
-            transition: all 0.6s ease;
-            padding: 1rem;
-            border-radius: 2.25rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.5s ease;
+            padding: 0.8rem;
+            border-radius: 2rem;
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
         header .user-profile:hover {
-            background-color: rgba(255, 255, 255, 0.18);
-            box-shadow: 0 0 18px rgba(52, 211, 153, 1);
+            background-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(52, 211, 153, 0.8);
         }
         header .user-avatar {
-            width: 65px;
-            height: 65px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
-            border: 6px solid #34D399;
-            box-shadow: 0 0 15px rgba(52, 211, 153, 1);
+            border: 5px solid #34D399;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.9);
         }
         header .user-info {
             display: flex;
@@ -210,258 +136,349 @@
         header .user-info .username {
             font-family: 'Cairo', sans-serif;
             font-weight: 700;
-            font-size: 1.5rem;
-            color: #E6F0FF;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            font-size: 1.4rem;
+            color: #E0E7FF;
+            text-shadow: 0 0 8px rgba(0,0,0,0.7);
         }
         header .user-info .user-id {
             font-family: 'Syncopate', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #A0AEC0;
-            opacity: 0.95;
-            letter-spacing: 2px;
+            opacity: 0.9;
+            letter-spacing: 1.5px;
         }
 
-        /* Main content area for lobby */
+        /* General button styling */
+        .btn-primary {
+            background: linear-gradient(45deg, #00E5FF, #007ACC);
+            color: white;
+            font-weight: bold;
+            padding: 14px 30px;
+            border-radius: 2rem;
+            box-shadow: 0 7px 20px rgba(0, 229, 255, 0.6);
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-shadow: 0 0 5px rgba(0,0,0,0.6);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            transition: width 0.4s ease, height 0.4s ease, top 0.4s ease, left 0.4s ease;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+        .btn-primary:hover::before {
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+        }
+        .btn-primary span, .btn-primary i {
+            position: relative;
+            z-index: 1;
+        }
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 9px 28px rgba(0, 229, 255, 0.9);
+            background: linear-gradient(45deg, #00F0FF, #0088DD);
+        }
+
+        /* Main content area */
         main {
             flex-grow: 1;
             display: flex;
-            padding: 3.5rem;
+            padding: 3rem;
             width: 100%;
-            max-width: 2000px; /* Even wider for ultimate layout */
+            max-width: 1800px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
-            gap: 3.5rem;
+            gap: 3rem;
         }
 
-        /* Left Panel - Online Users & Rooms */
+        /* Left Panel - Friends List */
         #left-panel {
             @apply glass-panel;
             flex-shrink: 0;
-            width: 500px; /* Wider fixed width for left panel */
-            padding: 3rem;
+            width: 450px;
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.8rem;
+            gap: 1.5rem;
         }
         #left-panel h2 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 700;
             color: #00E5FF;
-            text-shadow: 0 0 15px #00E5FF, 0 0 30px rgba(0, 229, 255, 1);
+            text-shadow: 0 0 12px #00E5FF, 0 0 25px rgba(0, 229, 255, 0.9);
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.8rem;
         }
-
-        /* Online Users List */
-        #online-users-list {
+        #search-friend-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #E0E7FF;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        #search-friend-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.6);
+            border-color: #00E5FF;
+        }
+        #friends-list, #friend-requests-list {
             flex-grow: 1;
             overflow-y: auto;
-            padding-right: 1.5rem;
+            padding-right: 1.2rem;
             scrollbar-width: thin;
             scrollbar-color: #00E5FF transparent;
         }
-        #online-users-list::-webkit-scrollbar {
-            width: 12px;
+        #friends-list::-webkit-scrollbar, #friend-requests-list::-webkit-scrollbar {
+            width: 10px;
         }
-        #online-users-list::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+        #friends-list::-webkit-scrollbar-track, #friend-requests-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
         }
-        #online-users-list::-webkit-scrollbar-thumb {
+        #friends-list::-webkit-scrollbar-thumb, #friend-requests-list::-webkit-scrollbar-thumb {
             background-color: #00E5FF;
-            border-radius: 15px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            border: 3px solid rgba(255, 255, 255, 0.15);
         }
-        .user-item {
+        .friend-item {
             display: flex;
             align-items: center;
-            gap: 1.8rem;
-            padding: 1.5rem 1.8rem;
-            border-radius: 1.8rem;
-            background-color: rgba(255, 255, 255, 0.06);
-            margin-bottom: 1rem;
+            gap: 1.5rem;
+            padding: 1.2rem 1.5rem;
+            border-radius: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.04);
+            margin-bottom: 0.8rem;
             cursor: pointer;
-            transition: all 0.5s ease;
+            transition: all 0.4s ease;
             border: 1px solid transparent;
             position: relative;
             overflow: hidden;
         }
-        .user-item::before { /* Animated background glow */
+        .friend-item::before { /* Animated background glow */
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 100% 0%, rgba(52, 211, 153, 0.08), transparent 75%);
+            background: radial-gradient(circle at 100% 0%, rgba(52, 211, 153, 0.05), transparent 70%);
             opacity: 0;
             transition: opacity 0.5s ease;
             z-index: 0;
         }
-        .user-item:hover::before, .user-item.active::before {
+        .friend-item:hover::before, .friend-item.active::before {
             opacity: 1;
         }
-        .user-item:hover, .user-item.active {
-            background-color: rgba(255, 255, 255, 0.12);
+        .friend-item:hover, .friend-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
             border-color: #34D399; /* Green glow for active/hover */
-            box-shadow: 0 0 15px rgba(52, 211, 153, 1);
-            transform: translateX(10px); /* More pronounced slide effect */
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.7);
+            transform: translateX(8px); /* More pronounced slide effect */
         }
-        .user-item img {
-            width: 60px;
-            height: 60px;
+        .friend-item img {
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             object-fit: cover;
-            border: 5px solid #00E5FF;
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.9);
+            border: 4px solid #00E5FF;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.7);
             position: relative;
             z-index: 1;
         }
-        .user-item .user-info {
+        .friend-item .friend-info {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             position: relative;
             z-index: 1;
         }
-        .user-item .user-name {
+        .friend-item .friend-name {
             font-family: 'Cairo', sans-serif;
             font-weight: 700;
-            font-size: 1.4rem;
-            color: #E6F0FF;
+            font-size: 1.3rem;
+            color: #E0E7FF;
         }
-        .user-item .user-status {
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            color: #A0AEC0;
-        }
-        .user-item .status-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: #EF4444; /* Offline default */
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
-            animation: pulse-status-offline 2.5s infinite alternate;
-        }
-        .user-item.online .status-dot {
-            background-color: #34D399; /* Online green */
-            box-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
-            animation: pulse-status-online 2s infinite alternate;
-        }
-        @keyframes pulse-status-online {
-            0% { box-shadow: 0 0 8px rgba(52, 211, 153, 0.8); }
-            100% { box-shadow: 0 0 12px rgba(52, 211, 153, 1); }
-        }
-        @keyframes pulse-status-offline {
-            0% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.6); }
-            100% { box-shadow: 0 0 9px rgba(239, 68, 68, 0.9); }
-        }
-
-        /* Room List (Placeholder) */
-        #room-list-section {
-            padding-top: 1.8rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            margin-top: 1.8rem;
-        }
-        #room-list-section h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #8B5CF6;
-            text-shadow: 0 0 12px #8B5CF6, 0 0 25px rgba(139, 92, 246, 1);
-            text-align: center;
-            margin-bottom: 1.8rem;
-        }
-        .room-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.2rem 1.5rem;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-        }
-        .room-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.7);
-            transform: translateX(8px);
-        }
-        .room-item .room-name {
-            font-size: 1.2rem;
-            color: #E6F0FF;
-            font-weight: 600;
-        }
-        .room-item .room-users {
-            font-size: 1rem;
-            color: #A0AEC0;
+        .friend-item .friend-status {
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             gap: 0.6rem;
+            color: #A0AEC0;
         }
-        .room-item .room-users i {
-            color: #34D399;
+        .friend-item .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #EF4444; /* Offline default */
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+            animation: pulse-status-offline 2s infinite alternate;
+        }
+        .friend-item.online .status-dot {
+            background-color: #34D399; /* Online green */
+            box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
+            animation: pulse-status-online 1.5s infinite alternate;
+        }
+        @keyframes pulse-status-online {
+            0% { box-shadow: 0 0 6px rgba(52, 211, 153, 0.6); }
+            100% { box-shadow: 0 0 10px rgba(52, 211, 153, 0.9); }
+        }
+        @keyframes pulse-status-offline {
+            0% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.4); }
+            100% { box-shadow: 0 0 7px rgba(239, 68, 68, 0.7); }
+        }
+
+        /* Friend Request Section */
+        #friend-requests-section {
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 1.5rem;
+        }
+        #friend-requests-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #8B5CF6;
+            text-shadow: 0 0 10px #8B5CF6, 0 0 20px rgba(139, 92, 246, 0.9);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .request-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.2rem;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        .request-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+        }
+        .request-item img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #FFD700; /* Gold border for requests */
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.7);
+        }
+        .request-item .request-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .request-item .request-name {
             font-size: 1.1rem;
+            color: #E0E7FF;
         }
+        .request-actions button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #E0E7FF;
+            padding: 0.6rem 1rem;
+            border-radius: 0.8rem;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+        }
+        .request-actions button.accept:hover { background-color: #34D399; box-shadow: 0 0 8px rgba(52, 211, 153, 0.7); }
+        .request-actions button.reject:hover { background-color: #EF4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.7); }
 
         /* Right Panel - Chat Area */
         #chat-area {
             @apply glass-panel;
             flex-grow: 1;
-            padding: 3rem;
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.8rem;
+            gap: 1.5rem;
         }
-        #chat-area h2 {
+        #chat-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1.5rem;
+        }
+        #chat-header img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #8B5CF6;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.9);
+        }
+        #chat-header .partner-info h2 {
             font-family: 'Orbitron', sans-serif;
             font-size: 2.5rem;
             font-weight: 700;
             color: #34D399;
-            text-shadow: 0 0 15px #34D399, 0 0 30px rgba(52, 211, 153, 1);
-            text-align: center;
-            margin-bottom: 1.8rem;
+            text-shadow: 0 0 15px #34D399, 0 0 30px rgba(52, 211, 153, 0.9);
+        }
+        #chat-header .partner-info p {
+            font-size: 1rem;
+            color: #A0AEC0;
         }
 
         #chat-messages-display {
             flex-grow: 1;
             overflow-y: auto;
-            padding-right: 1.5rem;
+            padding-right: 1.2rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.2rem;
             scrollbar-width: thin;
             scrollbar-color: #34D399 transparent;
         }
         #chat-messages-display::-webkit-scrollbar {
-            width: 12px;
+            width: 10px;
         }
         #chat-messages-display::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
         }
         #chat-messages-display::-webkit-scrollbar-thumb {
             background-color: #34D399;
-            border-radius: 15px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            border: 3px solid rgba(255, 255, 255, 0.15);
         }
 
         .chat-message-item {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             align-items: flex-start;
-            animation: fadeInMessage 0.5s ease-out;
+            animation: fadeInMessage 0.4s ease-out;
         }
         @keyframes fadeInMessage {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .chat-message-item.sent {
@@ -471,32 +488,32 @@
             justify-content: flex-start;
         }
         .chat-message-item .message-bubble {
-            max-width: 85%;
-            padding: 1.5rem 2rem;
-            border-radius: 2rem;
-            font-size: 1.2rem;
-            line-height: 1.7;
+            max-width: 80%;
+            padding: 1.2rem 1.8rem;
+            border-radius: 1.8rem;
+            font-size: 1.1rem;
+            line-height: 1.6;
             word-wrap: break-word;
             white-space: pre-wrap;
-            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             position: relative;
         }
         .chat-message-item.sent .message-bubble {
             background: linear-gradient(45deg, #00E5FF, #007ACC); /* Cyan for sent */
             color: white;
-            border-bottom-right-radius: 0.8rem; /* Pointy corner */
+            border-bottom-right-radius: 0.6rem; /* Pointy corner */
         }
         .chat-message-item.received .message-bubble {
-            background-color: rgba(255, 255, 255, 0.18); /* Subtle for received */
-            color: #E6F0FF;
-            border-bottom-left-radius: 0.8rem; /* Pointy corner */
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 255, 255, 0.15); /* Subtle for received */
+            color: #E0E7FF;
+            border-bottom-left-radius: 0.6rem; /* Pointy corner */
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
         .chat-message-item .timestamp {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #A0AEC0;
-            opacity: 0.95;
-            margin-top: 0.5rem;
+            opacity: 0.9;
+            margin-top: 0.4rem;
             font-family: 'Cairo', sans-serif;
         }
         .chat-message-item.sent .timestamp {
@@ -506,189 +523,295 @@
             text-align: left;
         }
         .chat-message-item .user-avatar {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
             object-fit: cover;
-            border: 4px solid #8B5CF6; /* Purple border for chat partner */
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.9);
+            border: 3px solid #8B5CF6; /* Purple border for chat partner */
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.8);
             flex-shrink: 0;
         }
         .chat-message-item.sent .user-avatar { order: 2; margin-right: 0; margin-left: 10px; }
         .chat-message-item.received .user-avatar { order: 1; margin-left: 0; margin-right: 10px; }
 
-
         /* Typing indicator */
         #typing-indicator {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            font-size: 1.1rem;
+            gap: 0.6rem;
+            font-size: 0.95rem;
             color: #A0AEC0;
-            margin-top: -1rem;
-            margin-bottom: 1rem;
+            margin-top: -0.8rem;
+            margin-bottom: 0.8rem;
             opacity: 0;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.4s ease-out;
         }
         #typing-indicator.show {
             opacity: 1;
         }
         .typing-dot {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             background-color: #34D399;
             border-radius: 50%;
-            animation: typing-pulse 1.8s infinite ease-in-out;
+            animation: typing-pulse 1.6s infinite ease-in-out;
         }
-        .typing-dot:nth-child(2) { animation-delay: 0.25s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.5s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing-pulse {
-            0%, 100% { transform: translateY(0); opacity: 0.7; }
-            50% { transform: translateY(-5px); opacity: 1; }
+            0%, 100% { transform: translateY(0); opacity: 0.6; }
+            50% { transform: translateY(-4px); opacity: 1; }
         }
-
 
         #chat-input-area {
             display: flex;
-            gap: 1.5rem;
-            padding-top: 1.8rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            gap: 1.2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
         }
         #message-input {
             flex-grow: 1;
-            padding: 1.2rem 2rem;
-            border-radius: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background-color: rgba(0, 0, 0, 0.4);
-            color: #E6F0FF;
-            transition: all 0.4s ease;
+            padding: 1rem 1.8rem;
+            border-radius: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #E0E7FF;
+            transition: all 0.3s ease;
             font-family: 'Cairo', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
         #message-input::placeholder {
             color: #A0AEC0;
-            opacity: 0.9;
+            opacity: 0.8;
         }
         #message-input:focus {
             outline: none;
-            box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.8);
+            box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.6);
             border-color: #34D399;
         }
         .chat-action-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
         }
         .chat-action-buttons button {
-            background-color: rgba(255, 255, 255, 0.12);
-            color: #E6F0FF;
-            width: 55px;
-            height: 55px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #E0E7FF;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
             cursor: pointer;
         }
         .chat-action-buttons button:hover {
-            background-color: rgba(0, 229, 255, 0.25);
+            background-color: rgba(0, 229, 255, 0.2);
             color: #00E5FF;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.8);
-            transform: translateY(-4px);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+            transform: translateY(-3px);
         }
         #send-message-btn {
             @apply btn-primary;
-            padding: 1.2rem 2.5rem;
-            border-radius: 1.5rem;
-            font-size: 1.3rem;
+            padding: 1rem 2rem;
+            border-radius: 1.2rem;
+            font-size: 1.2rem;
             background: linear-gradient(45deg, #34D399, #10B981); /* Green for send */
-            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.7);
+            box-shadow: 0 5px 15px rgba(52, 211, 153, 0.5);
         }
         #send-message-btn:hover {
-            box-shadow: 0 8px 25px rgba(52, 211, 153, 1);
+            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.8);
             background: linear-gradient(45deg, #4ADE80, #22C55E);
         }
 
-        /* User Profile Popup (for public users) - Similar to private chat but for public users */
-        #user-profile-popup {
+        /* Mic Stage Section */
+        #mic-stage-section {
             @apply glass-panel;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 3.5rem;
-            z-index: 300;
-            display: none;
+            width: 100%;
+            padding: 2.5rem;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            color: #E6F0FF;
-            max-width: 550px;
-            text-align: center;
-            border: 2px solid #8B5CF6;
-            opacity: 0;
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            border: 2px solid #8B5CF6; /* Purple border for stage */
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.7);
         }
-        #user-profile-popup.show {
-            display: flex;
-            opacity: 1;
-            transform: translate(-50%, -50%);
-        }
-        #user-profile-popup h3 {
-            color: #8B5CF6;
+        #mic-stage-section h2 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2.8rem;
-            margin-bottom: 1.8rem;
-            text-shadow: 0 0 15px #8B5CF6, 0 0 30px rgba(139, 92, 246, 1);
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #8B5CF6;
+            text-shadow: 0 0 12px #8B5CF6, 0 0 25px rgba(139, 92, 246, 0.9);
+            text-align: center;
         }
-        #user-profile-popup img {
+        #mic-circles-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .mic-circle {
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            object-fit: cover;
-            border: 6px solid #34D399;
-            box-shadow: 0 0 18px rgba(52, 211, 153, 1);
-            margin-bottom: 2rem;
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
         }
-        #user-profile-popup p {
-            font-size: 1.2rem;
-            margin-bottom: 1.2rem;
+        .mic-circle::before { /* Inner glow effect */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(52, 211, 153, 0.1), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+        .mic-circle:hover::before {
+            opacity: 1;
+        }
+        .mic-circle.active {
+            border-color: #34D399; /* Green when active */
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.9);
+            background-color: rgba(52, 211, 153, 0.15);
+            transform: scale(1.05);
+        }
+        .mic-circle.active .mic-icon {
+            color: #34D399;
+            text-shadow: 0 0 10px #34D399;
+        }
+        .mic-circle.on-stage {
+            border-color: #FFD700; /* Gold when on stage */
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.9);
+            background-color: rgba(255, 215, 0, 0.15);
+            transform: scale(1.1);
+        }
+        .mic-circle.on-stage .mic-icon {
+            color: #FFD700;
+            text-shadow: 0 0 12px #FFD700;
+        }
+        .mic-circle .mic-icon {
+            font-size: 3.5rem;
             color: #A0AEC0;
+            margin-bottom: 0.5rem;
+            transition: color 0.4s ease, text-shadow 0.4s ease;
+            position: relative;
+            z-index: 1;
         }
-        #user-profile-popup strong {
-            color: #E6F0FF;
-            font-weight: bold;
+        .mic-circle .mic-username {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #E0E7FF;
+            position: relative;
+            z-index: 1;
         }
-        #user-profile-popup .button {
-            margin-top: 2rem;
-            padding: 16px 35px;
-            font-size: 1.2rem;
-            font-weight: 700;
+        .mic-circle.empty .mic-icon {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .mic-circle.empty .mic-username {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .mic-controls {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .mic-controls button {
+            @apply btn-primary;
+            padding: 12px 25px;
+            font-size: 1.1rem;
             border-radius: 1.5rem;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
-            background: linear-gradient(45deg, #00E5FF, #007ACC);
-            color: white;
+            background: linear-gradient(45deg, #8B5CF6, #6D28D9); /* Purple for mic controls */
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.5);
         }
-        #user-profile-popup .button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 229, 255, 1);
+        .mic-controls button:hover {
+            box-shadow: 0 7px 20px rgba(139, 92, 246, 0.8);
+            background: linear-gradient(45deg, #A78BFA, #8B5CF6);
         }
-        #user-profile-popup .button-green {
-            background: linear-gradient(45deg, #34D399, #10B981);
-            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.5);
+        .mic-controls button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
         }
-        #user-profile-popup .button-green:hover {
-            box-shadow: 0 8px 25px rgba(52, 211, 153, 0.8);
+        .mic-controls button.disabled:hover {
+            transform: none;
+            box-shadow: none;
         }
-        #user-profile-popup .button-purple {
-            background: linear-gradient(45deg, #8B5CF6, #A78BFA);
-            box-shadow: 0 6px 18px rgba(139, 92, 246, 0.5);
+
+        /* AI Features Section */
+        #ai-features-section {
+            @apply glass-panel;
+            width: 100%;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            border: 2px solid #00E5FF; /* Cyan border for AI */
+            box-shadow: 0 0 25px rgba(0, 229, 255, 0.7);
         }
-        #user-profile-popup .button-purple:hover {
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.8);
+        #ai-features-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #00E5FF;
+            text-shadow: 0 0 12px #00E5FF, 0 0 25px rgba(0, 229, 255, 0.9);
+            text-align: center;
+        }
+        .ai-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            justify-content: center;
+        }
+        .ai-button {
+            @apply btn-primary;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 1.5rem;
+            background: linear-gradient(45deg, #34D399, #10B981); /* Green for AI buttons */
+            box-shadow: 0 5px 15px rgba(52, 211, 153, 0.5);
+        }
+        .ai-button:hover {
+            box-shadow: 0 7px 20px rgba(52, 211, 153, 0.8);
+            background: linear-gradient(45deg, #4ADE80, #22C55E);
+        }
+        .ai-button.loading {
+            opacity: 0.7;
+            cursor: progress;
+        }
+        .ai-button.loading .loading-spinner {
+            display: block;
+        }
+        .ai-button.loading span {
+            display: none;
+        }
+        .ai-button .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Toast Notification */
@@ -793,7 +916,7 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 1280px) { /* Adjust for larger tablets/smaller desktops */
+        @media (max-width: 1280px) {
             main {
                 padding: 2rem;
                 gap: 2rem;
@@ -805,40 +928,49 @@
             #left-panel h2 {
                 font-size: 2rem;
             }
-            .user-item {
+            .friend-item {
                 padding: 1rem 1.2rem;
             }
-            .user-item img {
+            .friend-item img {
                 width: 50px;
                 height: 50px;
             }
-            .user-item .user-name {
+            .friend-item .friend-name {
                 font-size: 1.2rem;
             }
-            .user-item .user-status {
+            .friend-item .friend-status {
                 font-size: 0.85rem;
             }
-            .user-item .status-dot {
+            .friend-item .status-dot {
                 width: 12px;
                 height: 12px;
             }
-            #room-list-section h3 {
+            #friend-requests-section h3 {
                 font-size: 1.5rem;
             }
-            .room-item {
+            .request-item {
                 padding: 0.8rem 1rem;
             }
-            .room-item .room-name {
+            .request-item img {
+                width: 40px;
+                height: 40px;
+            }
+            .request-item .request-name {
                 font-size: 1rem;
             }
-            .room-item .room-users {
+            .request-actions button {
+                padding: 0.5rem 0.8rem;
                 font-size: 0.8rem;
             }
 
             #chat-area {
                 padding: 2rem;
             }
-            #chat-area h2 {
+            #chat-header img {
+                width: 60px;
+                height: 60px;
+            }
+            #chat-header .partner-info h2 {
                 font-size: 2rem;
             }
             #chat-messages-display {
@@ -869,27 +1001,49 @@
                 font-size: 1.1rem;
             }
 
-            #user-profile-popup {
-                padding: 2.5rem;
-                max-width: 450px;
+            #mic-stage-section {
+                padding: 2rem;
+                margin-bottom: 2rem;
             }
-            #user-profile-popup h3 {
+            #mic-stage-section h2 {
                 font-size: 2rem;
             }
-            #user-profile-popup img {
-                width: 90px;
-                height: 90px;
+            .mic-circle {
+                width: 100px;
+                height: 100px;
             }
-            #user-profile-popup p {
+            .mic-circle .mic-icon {
+                font-size: 3rem;
+            }
+            .mic-circle .mic-username {
                 font-size: 1rem;
             }
-            #user-profile-popup .button {
-                padding: 12px 25px;
+            .mic-controls button {
+                padding: 10px 20px;
                 font-size: 1rem;
+            }
+
+            #ai-features-section {
+                padding: 2rem;
+            }
+            #ai-features-section h2 {
+                font-size: 2rem;
+            }
+            .ai-buttons-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+            .ai-button {
+                padding: 0.9rem 1.2rem;
+                font-size: 1rem;
+            }
+            .ai-button .loading-spinner {
+                width: 20px;
+                height: 20px;
             }
         }
 
-        @media (max-width: 768px) { /* Mobile specific adjustments */
+        @media (max-width: 768px) {
             header {
                 flex-direction: column;
                 padding: 1rem;
@@ -917,48 +1071,57 @@
             }
 
             main {
-                flex-direction: column; /* Stack panels vertically */
+                flex-direction: column;
                 padding: 1rem;
                 gap: 1rem;
             }
-
             #left-panel {
-                width: 100%; /* Full width on mobile */
+                width: 100%;
                 padding: 1rem;
                 border-radius: 1.5rem;
             }
             #left-panel h2 {
                 font-size: 1.5rem;
             }
-            .user-item {
+            #search-friend-input {
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+            .friend-item {
                 padding: 0.7rem 0.9rem;
                 border-radius: 0.9rem;
             }
-            .user-item img {
+            .friend-item img {
                 width: 35px;
                 height: 35px;
             }
-            .user-item .user-name {
+            .friend-item .friend-name {
                 font-size: 1rem;
             }
-            .user-item .user-status {
+            .friend-item .friend-status {
                 font-size: 0.7rem;
             }
-            .user-item .status-dot {
+            .friend-item .status-dot {
                 width: 8px;
                 height: 8px;
             }
-            #room-list-section h3 {
+            #friend-requests-section h3 {
                 font-size: 1.2rem;
             }
-            .room-item {
+            .request-item {
                 padding: 0.6rem 0.8rem;
                 border-radius: 0.8rem;
             }
-            .room-item .room-name {
+            .request-item img {
+                width: 30px;
+                height: 30px;
+            }
+            .request-item .request-name {
                 font-size: 0.9rem;
             }
-            .room-item .room-users {
+            .request-actions button {
+                padding: 0.4rem 0.6rem;
                 font-size: 0.7rem;
             }
 
@@ -966,8 +1129,15 @@
                 padding: 1rem;
                 border-radius: 1.5rem;
             }
-            #chat-area h2 {
-                font-size: 1.5rem;
+            #chat-header img {
+                width: 50px;
+                height: 50px;
+            }
+            #chat-header .partner-info h2 {
+                font-size: 1.8rem;
+            }
+            #chat-header .partner-info p {
+                font-size: 0.8rem;
             }
             #chat-messages-display {
                 padding-right: 0.5rem;
@@ -998,22 +1168,43 @@
                 font-size: 0.9rem;
             }
 
-            #user-profile-popup {
-                padding: 1.8rem;
+            #mic-stage-section {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                border-radius: 1.5rem;
             }
-            #user-profile-popup h3 {
-                font-size: 1.5rem;
+            #mic-stage-section h2 {
+                font-size: 1.8rem;
             }
-            #user-profile-popup img {
-                width: 60px;
-                height: 60px;
+            .mic-circle {
+                width: 80px;
+                height: 80px;
             }
-            #user-profile-popup p {
-                font-size: 0.8rem;
+            .mic-circle .mic-icon {
+                font-size: 2.5rem;
             }
-            #user-profile-popup .button {
+            .mic-circle .mic-username {
+                font-size: 0.9rem;
+            }
+            .mic-controls button {
                 padding: 8px 15px;
-                font-size: 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            #ai-features-section {
+                padding: 1.5rem;
+                border-radius: 1.5rem;
+            }
+            #ai-features-section h2 {
+                font-size: 1.8rem;
+            }
+            .ai-buttons-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+            .ai-button {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -1028,29 +1219,12 @@
         <!-- Content will be injected by JavaScript -->
     </div>
 
-    <!-- User Profile Popup (for public chat users) -->
-    <div id="user-profile-popup" class="popup">
-        <img id="popup-user-avatar" src="https://placehold.co/110x110/cccccc/333333?text=U" alt="User Avatar">
-        <h3 id="popup-user-username">اسم المستخدم</h3>
-        <p>المعرف: <strong id="popup-user-id">ID: ...</strong></p>
-        <p>الدور: <strong id="popup-user-role">عضو</strong></p>
-        <p>الخبرة: <strong id="popup-user-xp">0</strong></p>
-        <p>الهدايا المستلمة: <strong id="popup-user-gifts-received">0</strong></p>
-        <p>الحالة: <strong id="popup-user-status">متصل</strong></p>
-        <p id="popup-user-bio">لا يوجد سيرة ذاتية.</p>
-        <div class="flex gap-5 mt-5">
-            <button id="popup-add-friend-btn" class="button button-green">إضافة صديق</button>
-            <button id="popup-private-chat-btn" class="button button-purple">دردشة خاصة</button>
-        </div>
-        <button id="close-user-profile-popup" class="button button-primary mt-4">إغلاق</button>
-    </div>
-
     <header>
         <div class="logo">AirChat</div>
         <nav class="flex items-center gap-6">
-            <a href="/private_chat.html" class="btn-primary">
-                <i class="fas fa-comments"></i>
-                الدردشة الخاصة
+            <a href="/index.html" class="btn-primary">
+                <i class="fas fa-home"></i>
+                العودة للوبي
             </a>
             <button id="logout-btn" class="btn-primary" style="background: linear-gradient(45deg, #EF4444, #DC2626); box-shadow: 0 7px 20px rgba(239, 68, 68, 0.6);">
                 <i class="fas fa-sign-out-alt"></i>
@@ -1058,7 +1232,7 @@
             </button>
         </nav>
         <div id="user-profile-display" class="user-profile">
-            <img id="current-user-avatar" src="https://placehold.co/65x65/cccccc/333333?text=U" alt="My Avatar" class="user-avatar">
+            <img id="current-user-avatar" src="https://placehold.co/60x60/cccccc/333333?text=U" alt="My Avatar" class="user-avatar">
             <div class="user-info">
                 <span id="current-user-username" class="username">تحميل...</span>
                 <span id="current-user-id" class="user-id">ID: ...</span>
@@ -1067,66 +1241,97 @@
     </header>
 
     <main>
-        <!-- Left Panel - Online Users & Rooms -->
+        <!-- Left Panel - Friends List & Friend Requests -->
         <div id="left-panel" class="glass-panel">
-            <h2>المستخدمون المتصلون</h2>
-            <div id="online-users-list" class="flex flex-col">
-                <!-- Online user items will be dynamically loaded here -->
-                <div class="user-item online" data-user-id="mockUser1">
-                    <img src="https://placehold.co/55x55/00000a/34d399?text=U1" alt="User Avatar">
-                    <div class="user-info">
-                        <span class="user-name">مستخدم 1</span>
-                        <span class="user-status"><span class="status-dot"></span> متصل</span>
+            <h2>قائمة الأصدقاء</h2>
+            <input type="text" id="search-friend-input" placeholder="ابحث عن صديق بالـ ID...">
+            <div id="friends-list" class="flex flex-col">
+                <!-- Friend items will be dynamically loaded here -->
+                <div class="friend-item online" data-friend-id="friend123">
+                    <img src="https://placehold.co/55x55/00000a/34d399?text=F1" alt="Friend Avatar">
+                    <div class="friend-info">
+                        <span class="friend-name">صديق تجريبي 1</span>
+                        <span class="friend-status"><span class="status-dot"></span> متصل</span>
                     </div>
                 </div>
-                <div class="user-item online" data-user-id="mockUser2">
-                    <img src="https://placehold.co/55x55/00000a/00e5ff?text=U2" alt="User Avatar">
-                    <div class="user-info">
-                        <span class="user-name">مستخدم 2</span>
-                        <span class="user-status"><span class="status-dot"></span> متصل</span>
-                    </div>
-                </div>
-                <div class="user-item" data-user-id="mockUser3">
-                    <img src="https://placehold.co/55x55/00000a/ef4444?text=U3" alt="User Avatar">
-                    <div class="user-info">
-                        <span class="user-name">مستخدم 3</span>
-                        <span class="user-status"><span class="status-dot"></span> غير متصل</span>
+                <div class="friend-item" data-friend-id="friend456">
+                    <img src="https://placehold.co/55x55/00000a/00e5ff?text=F2" alt="Friend Avatar">
+                    <div class="friend-info">
+                        <span class="friend-name">صديق تجريبي 2</span>
+                        <span class="friend-status"><span class="status-dot"></span> غير متصل</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Room List (Placeholder for future expansion) -->
-            <div id="room-list-section">
-                <h3>الغرف المتاحة</h3>
-                <div id="rooms-list">
-                    <div class="room-item" data-room-id="main-lobby">
-                        <span class="room-name">غرفة اللوبي الرئيسية</span>
-                        <span class="room-users"><i class="fas fa-users"></i> 15</span>
-                    </div>
-                    <div class="room-item" data-room-id="gaming">
-                        <span class="room-name">غرفة الألعاب</span>
-                        <span class="room-users"><i class="fas fa-users"></i> 8</span>
+            <div id="friend-requests-section">
+                <h3>طلبات الصداقة</h3>
+                <div id="friend-requests-list">
+                    <!-- Friend requests will be dynamically loaded here -->
+                    <div class="request-item" data-request-id="req123">
+                        <img src="https://placehold.co/45x45/00000a/ffd700?text=R1" alt="Request User Avatar">
+                        <div class="request-info">
+                            <span class="request-name">طلب من: مستخدم X</span>
+                        </div>
+                        <div class="request-actions">
+                            <button class="accept">قبول</button>
+                            <button class="reject">رفض</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel - Public Chat Area -->
+        <!-- Right Panel - Chat Area & Mic Stage & AI Features -->
         <div id="chat-area" class="glass-panel">
-            <h2>الدردشة العامة</h2>
+            <div id="chat-header">
+                <img id="chat-partner-avatar" src="https://placehold.co/70x70/cccccc/333333?text=P" alt="Partner Avatar">
+                <div class="partner-info">
+                    <h2 id="chat-partner-username">اختر صديقًا للدردشة</h2>
+                    <p id="chat-partner-status">غير متصل</p>
+                </div>
+            </div>
+
+            <!-- Mic Stage Section -->
+            <div id="mic-stage-section" class="glass-panel">
+                <h2>المرحلة الصوتية</h2>
+                <div id="mic-circles-container">
+                    <!-- Mic circles will be dynamically loaded here -->
+                    <div class="mic-circle" data-mic-id="mic1">
+                        <i class="fas fa-microphone mic-icon"></i>
+                        <span class="mic-username">فارغ</span>
+                    </div>
+                    <div class="mic-circle" data-mic-id="mic2">
+                        <i class="fas fa-microphone mic-icon"></i>
+                        <span class="mic-username">فارغ</span>
+                    </div>
+                    <div class="mic-circle" data-mic-id="mic3">
+                        <i class="fas fa-microphone mic-icon"></i>
+                        <span class="mic-username">فارغ</span>
+                    </div>
+                    <div class="mic-circle" data-mic-id="mic4">
+                        <i class="fas fa-microphone mic-icon"></i>
+                        <span class="mic-username">فارغ</span>
+                    </div>
+                </div>
+                <div class="mic-controls">
+                    <button id="request-mic-btn" class="disabled"><i class="fas fa-hand-paper"></i> طلب مايك</button>
+                    <button id="leave-mic-btn" class="disabled"><i class="fas fa-microphone-slash"></i> مغادرة المايك</button>
+                </div>
+            </div>
+
             <div id="chat-messages-display" class="flex flex-col">
-                <!-- Public chat messages will be dynamically loaded here -->
+                <!-- Chat messages will be dynamically loaded here -->
                 <div class="chat-message-item received">
-                    <img src="https://placehold.co/50x50/00000a/8b5cf6?text=U4" alt="User Avatar" class="user-avatar">
+                    <img src="https://placehold.co/45x45/00000a/8b5cf6?text=P1" alt="User Avatar" class="user-avatar">
                     <div class="message-bubble">
-                        مرحباً بالجميع في AirChat!
+                        مرحباً! كيف حالك اليوم؟
                         <div class="timestamp">10:00 ص</div>
                     </div>
                 </div>
                 <div class="chat-message-item sent">
-                    <img src="https://placehold.co/50x50/00000a/34d399?text=ME" alt="My Avatar" class="user-avatar">
+                    <img id="my-chat-avatar" src="https://placehold.co/45x45/00000a/34d399?text=ME" alt="My Avatar" class="user-avatar">
                     <div class="message-bubble">
-                        أهلاً بك! تصميم رائع جداً!
+                        أهلاً بك! أنا بخير، شكراً لك.
                         <div class="timestamp">10:01 ص</div>
                     </div>
                 </div>
@@ -1150,6 +1355,29 @@
                     إرسال
                 </button>
             </div>
+
+            <!-- AI Features Section -->
+            <div id="ai-features-section" class="glass-panel">
+                <h2>ميزات الذكاء الاصطناعي</h2>
+                <div class="ai-buttons-grid">
+                    <button id="smart-reply-btn" class="ai-button">
+                        <span class="loading-spinner"></span>
+                        <span><i class="fas fa-lightbulb"></i> ردود ذكية</span>
+                    </button>
+                    <button id="creative-message-btn" class="ai-button">
+                        <span class="loading-spinner"></span>
+                        <span><i class="fas fa-magic"></i> رسالة إبداعية</span>
+                    </button>
+                    <button id="summarize-chat-btn" class="ai-button">
+                        <span class="loading-spinner"></span>
+                        <span><i class="fas fa-file-alt"></i> تلخيص الدردشة</span>
+                    </button>
+                    <button id="translate-message-btn" class="ai-button">
+                        <span class="loading-spinner"></span>
+                        <span><i class="fas fa-language"></i> ترجمة</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -1157,7 +1385,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <!-- Main Application Logic (Firebase auth, global utils) -->
     <script type="module" src="./js/main.js"></script>
-    <!-- Public Chat Specific Logic -->
-    <script type="module" src="./js/public_chat_logic.js"></script>
+    <!-- Private Chat Specific Logic -->
+    <script type="module" src="./js/private_chat_logic.js"></script>
 </body>
 </html>
