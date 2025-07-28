@@ -9,18 +9,21 @@
     <!-- Link to global styles -->
     <link rel="stylesheet" href="./css/style.css">
     <style>
-        /* Specific styles for the room page */
+        /* Base styles for the entire page */
         body {
-            background-color: #f0f2f5; /* Default light background */
+            background-color: #8B0000; /* Deep Red for a bold look */
+            background-image: url('/assets/images/room-bg-eagle.jpg'); /* Example background image */
             background-size: cover;
             background-position: center;
-            transition: background-image 0.5s ease, background-color 0.5s ease; /* Smooth transitions for background changes */
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease, background-color 0.5s ease;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
             overflow-x: hidden; /* Prevent horizontal scroll */
             font-family: 'Inter', sans-serif;
-            direction: rtl;
+            direction: rtl; /* Right-to-left for Arabic */
+            color: #e0e0e0; /* Light text color for dark background */
         }
 
         /* Main room container */
@@ -29,68 +32,282 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; /* Push controls/chat to ends */
-            padding: 20px;
+            justify-content: space-between;
+            padding: 10px;
             position: relative;
             width: 100%;
-            min-height: 100vh; /* Ensure it takes full height */
+            min-height: 100vh;
         }
 
-        /* Top controls bar */
-        #controls {
-            position: fixed; /* Fixed position for controls */
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.95); /* Slightly less transparent */
-            padding: 15px 25px;
-            border-radius: 1.5rem;
+        /* Top Bar - User Info & Global Controls */
+        #top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
             display: flex;
-            gap: 15px;
-            z-index: 100; /* Ensure it's on top */
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            max-width: 95%; /* Limit width on larger screens */
-            width: fit-content; /* Adjust width to content */
+            z-index: 200;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 0.9rem;
         }
-        #controls .button {
-            padding: 10px 18px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border-radius: 0.75rem;
-            white-space: nowrap; /* Prevent text wrapping on buttons */
-            transition: all 0.2s ease; /* Smooth button transitions */
+        #top-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        #controls .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        #top-bar .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #007bff;
+        }
+        #top-bar .global-controls {
+            display: flex;
+            gap: 10px;
+        }
+        #top-bar .global-controls button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            transition: background-color 0.2s ease;
+        }
+        #top-bar .global-controls button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Mic Grid (غراف) */
-        #mics-grid {
+        /* Stage Mics Grid - Main central area for featured speakers */
+        #stage-mics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Responsive grid for mics */
-            gap: 2.5rem; /* Increased gap for better spacing */
+            grid-template-columns: repeat(5, minmax(100px, 1fr)); /* 5 mics per row */
+            gap: 2rem; /* Spacing between mics */
             padding: 20px;
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 1000px; /* Increased max width for the grid area */
-            margin-top: 120px; /* Space for the fixed top controls */
-            margin-bottom: 20px; /* Space for the chat box */
-            flex-grow: 1; /* Allow grid to take available space */
-            align-content: center; /* Center items if not enough to fill grid */
-            overflow-y: auto; /* Allow scrolling if many mics */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            max-width: 800px; /* Max width for the stage area */
+            margin-top: 80px; /* Space for top bar */
+            margin-bottom: 20px; /* Space before central message/chat */
+            z-index: 50;
+            flex-shrink: 0;
         }
 
-        /* Chat box and input */
-        #chat-box-container {
-            width: 95%;
-            max-width: 600px; /* Wider chat box */
+        /* Individual Stage Mic Slot */
+        .stage-mic-slot {
+            width: 120px; /* Fixed size for stage mics */
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(#333, #000); /* Darker, empty mic slot */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            color: #ccc; /* Lighter text for empty slot */
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px dashed #555; /* Dashed border for empty slot */
+            transition: all 0.3s ease;
+            cursor: pointer; /* Make them clickable */
+        }
+        .stage-mic-slot.occupied {
+            background: radial-gradient(#6a0dad, #4b0082); /* Deeper purple gradient when occupied */
+            box-shadow: 0 0 20px rgba(106, 13, 173, 0.6);
+            border: 3px solid transparent; /* Solid border when occupied */
+        }
+        .stage-mic-slot.active { /* Speaking indicator */
+            box-shadow: 0 0 0 6px #00e676, 0 0 25px #00e676; /* Brighter green glow */
+            animation: pulse-mic 1s infinite;
+            border-color: #00e676; /* Green border when active */
+        }
+        @keyframes pulse-mic {
+            0% { box-shadow: 0 0 0 6px #00e676; }
+            50% { box-shadow: 0 0 0 12px #00e676; }
+            100% { box-shadow: 0 0 0 6px #00e676; }
+        }
+
+        .stage-mic-slot img {
+            width: 80px; /* Adjusted size */
+            height: 80px; /* Adjusted size */
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white; /* Thicker white border */
+            margin-bottom: 6px; /* More space for name */
+        }
+        .stage-mic-slot .mic-name {
+            font-weight: 700; /* Bolder name */
+            font-size: 1rem; /* Larger font size */
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+            color: white;
+        }
+        .stage-mic-slot .mic-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .stage-mic-slot .user-status {
+            position: absolute;
+            bottom: 8px; /* Adjusted position */
+            right: 8px; /* Adjusted position */
+            width: 18px; /* Larger status indicator */
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 5;
+        }
+        .online { background-color: #28a745; }
+        .offline { background-color: #6c757d; }
+        .stage-mic-slot.muted {
+            filter: grayscale(100%);
+            opacity: 0.6;
+            border-color: red; /* Red border for muted */
+        }
+        .stage-mic-slot.admin::after {
+            content: "👑";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 24px; /* Larger crown */
+            z-index: 10;
+        }
+        .stage-mic-slot.vip {
+            border: 4px solid gold !important; /* Thicker gold border */
+            box-shadow: 0 0 15px gold !important;
+        }
+        /* Hide badges/scores on stage mics by default */
+        .stage-mic-slot .level-badge, .stage-mic-slot .gift-badge, .stage-mic-slot .react-score {
+            display: none;
+        }
+
+        /* General Mics Grid - For other users in the room (smaller) */
+        #general-mics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* Smaller mics */
+            gap: 1rem;
+            padding: 10px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
             margin-bottom: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            z-index: 40;
+            background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background */
+            border-radius: 1rem;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .general-mic-circle {
+            width: 70px; /* Small size */
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(#00e5ff, #007acc); /* Blue gradient */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            color: white;
+            font-size: 0.7rem;
+        }
+        .general-mic-circle img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            margin-bottom: 2px;
+        }
+        .general-mic-circle .mic-name {
+            font-weight: 500;
+            font-size: 0.7rem;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+        }
+        .general-mic-circle.active {
+            box-shadow: 0 0 0 3px #00e676, 0 0 15px #00e676;
+            animation: pulse-mic-small 1s infinite;
+        }
+        @keyframes pulse-mic-small {
+            0% { box-shadow: 0 0 0 3px #00e676; }
+            50% { box-shadow: 0 0 0 6px #00e676; }
+            100% { box-shadow: 0 0 0 3px #00e676; }
+        }
+        /* Inherit other mic-circle styles like muted, admin, vip, user-status */
+
+
+        /* Central Announcement/Message Area */
+        #central-message-area {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 80%;
+            width: fit-content;
+            margin: 20px auto;
+            z-index: 100;
+            color: #333;
+            display: none; /* Hidden by default, shown by JS */
+        }
+
+        /* Bottom Control Bar */
+        #bottom-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 200;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+        #bottom-controls .control-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+        #bottom-controls .control-button:hover {
+            transform: translateY(-3px);
+            color: #00e676;
+        }
+        #bottom-controls .control-button svg {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+
+        /* Chat Box - Positioned to the side/bottom-right */
+        #chat-box-container {
+            position: fixed;
+            bottom: 70px; /* Above bottom controls */
+            right: 20px; /* Positioned to the right */
+            width: 350px; /* Fixed width */
+            max-height: 400px; /* Max height for chat */
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -98,10 +315,14 @@
             border-radius: 1.5rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             padding: 1.5rem;
-            z-index: 95; /* Ensure chat is above some floating panels */
+            z-index: 95;
+            display: none; /* Hidden by default, toggled by JS */
+        }
+        #chat-box-container.show {
+            display: flex;
         }
         #chat-messages {
-            height: 200px; /* Fixed height for chat history */
+            flex-grow: 1;
             overflow-y: auto;
             border-bottom: 1px solid #e5e7eb;
             padding-bottom: 1rem;
@@ -127,31 +348,76 @@
             font-weight: 600;
         }
 
-        /* Floating elements (stats, logs, etc.) */
-        .floating-panel {
+        /* Floating Panels (now more like side/toggleable elements) */
+        #floating-panels-container {
             position: fixed;
+            top: 80px; /* Below top bar */
+            right: 20px;
             background-color: rgba(255, 255, 255, 0.9);
             padding: 15px;
             border-radius: 1rem;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            z-index: 90;
+            z-index: 150;
             color: #333;
-            transition: all 0.3s ease; /* Smooth transitions for panels */
+            transition: all 0.3s ease;
+            display: none; /* Hidden by default, toggled by JS */
+            flex-direction: column;
+            gap: 15px;
+            max-height: calc(100vh - 180px); /* Adjust max height */
+            overflow-y: auto;
+        }
+        #floating-panels-container.show {
+            display: flex;
+        }
+        .floating-panel-item { /* Individual panels within the container */
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 0.75rem;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+        body.dark-mode #floating-panels-container {
+            background-color: rgba(50, 50, 50, 0.9);
+            color: #eee;
+        }
+        body.dark-mode .floating-panel-item {
+            background-color: #333;
+            color: #eee;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.1);
         }
 
-        /* Specific panel positions - Adjusted to avoid overlap and be responsive */
-        #stayTimer { top: 20px; left: 20px; right: auto; width: auto; } /* Top-left */
-        #online-counter { top: 60px; left: 20px; right: auto; width: auto; background-color: #007bff; color: white; } /* Below timer */
-        #userDisplay { top: 100px; left: 20px; right: auto; width: 200px; max-height: 200px; overflow-y: auto; } /* Below online counter */
+        /* User Info Popup (when clicking on a mic) */
+        #user-info-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            z-index: 250; /* Above everything else */
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+            max-width: 90%;
+            text-align: center;
+        }
+        #user-info-popup.show {
+            display: flex;
+        }
+        #user-info-popup .button {
+            margin-top: 10px;
+        }
+        body.dark-mode #user-info-popup {
+            background-color: rgba(40, 40, 40, 0.95);
+            color: #eee;
+        }
 
-        #topUsersPanel { top: 20px; right: 20px; left: auto; width: 250px; max-height: 250px; overflow-y: auto; } /* Top-right */
-        #honorBoard { top: 280px; right: 20px; left: auto; width: 250px; max-height: 250px; overflow-y: auto; } /* Below top users */
-        #moderatorList { top: 550px; right: 20px; left: auto; width: 250px; max-height: 250px; overflow-y: auto; } /* Below honor board */
-
-        #entryLog { bottom: 20px; left: 20px; right: auto; width: 280px; max-height: 250px; overflow-y: auto; } /* Bottom-left */
-
+        /* Other popups/toasts */
         #pinnedMessage { 
-            top: 100px; 
+            position: fixed;
+            top: 80px; 
             left: 50%; 
             transform: translateX(-50%); 
             display: none; 
@@ -162,41 +428,118 @@
             padding: 10px 20px;
             max-width: 80%;
             text-align: center;
+            z-index: 210;
+            border-radius: 0.75rem;
         }
         #achievements-box { bottom: 150px; left: 50%; transform: translateX(-50%); display: none; }
         #welcomeBanner { top: 40px; opacity: 0; transition: opacity 1s; }
         #welcome-popup { display: none; }
         #toast { bottom: 30px; }
 
-        /* Responsive adjustments for fixed elements on small screens */
+
+        /* Responsive adjustments for mobile */
         @media (max-width: 768px) {
-            #controls {
-                position: static; /* Make controls flow with content */
-                transform: none;
-                width: 95%;
-                margin: 20px auto;
+            #top-bar {
+                padding: 8px 15px;
             }
-            .floating-panel {
-                position: static !important; /* Make them flow with content */
-                margin: 10px auto !important;
-                width: 95% !important;
-                max-width: none !important; /* Remove max-width on mobile */
-                transform: none !important;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            #top-bar .user-info {
+                font-size: 0.8rem;
             }
-            #mics-grid {
-                margin-top: 20px; /* Adjust top margin for smaller screens */
-                margin-bottom: 20px;
-                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Smaller mics on small screens */
-                gap: 1.5rem;
+            #top-bar .user-info img {
+                width: 30px;
+                height: 30px;
             }
+            #top-bar .global-controls button {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+            }
+
+            #stage-mics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 1rem;
+                margin-top: 60px;
+                margin-bottom: 10px; /* Reduced margin */
+            }
+            .stage-mic-slot {
+                width: 90px;
+                height: 90px;
+            }
+            .stage-mic-slot img {
+                width: 60px;
+                height: 60px;
+            }
+            .stage-mic-slot .mic-name {
+                font-size: 0.8rem;
+            }
+            .stage-mic-slot .mic-number {
+                font-size: 0.7rem;
+                padding: 1px 6px;
+            }
+            .stage-mic-slot.admin::after {
+                font-size: 18px;
+            }
+            .user-status {
+                width: 14px;
+                height: 14px;
+            }
+
+            #general-mics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+                gap: 0.5rem;
+                padding: 5px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            .general-mic-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 0.6rem;
+            }
+            .general-mic-circle img {
+                width: 40px;
+                height: 40px;
+            }
+            .general-mic-circle .mic-name {
+                font-size: 0.6rem;
+            }
+
+            #request-mic-btn {
+                font-size: 0.9rem;
+                padding: 8px 16px;
+                margin-bottom: 10px;
+            }
+
+            #bottom-controls {
+                padding: 8px 10px;
+            }
+            #bottom-controls .control-button {
+                font-size: 0.65rem;
+                gap: 2px;
+            }
+            #bottom-controls .control-button svg {
+                width: 24px;
+                height: 24px;
+            }
+
             #chat-box-container {
-                margin-top: 20px;
-                margin-bottom: 20px; /* Ensure space at bottom */
+                width: 95%;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 70px;
+                max-height: 300px;
+                padding: 1rem;
             }
-            body {
-                padding-bottom: 20px; /* Add some padding at the bottom */
-                overflow-y: auto; /* Allow body to scroll on small screens */
+
+            #floating-panels-container {
+                width: 95%;
+                left: 50%;
+                transform: translateX(-50%);
+                top: 70px; /* Below top bar */
+                max-height: calc(100vh - 140px);
+                padding: 1rem;
+            }
+            #user-info-popup {
+                padding: 20px;
             }
         }
 
@@ -208,7 +551,10 @@
             background-color: rgba(40, 40, 40, 0.95);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
-        body.dark-mode #controls, body.dark-mode .floating-panel {
+        body.dark-mode #top-bar, body.dark-mode #bottom-controls {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        body.dark-mode .floating-panel {
             background-color: rgba(50, 50, 50, 0.9);
             color: #eee;
         }
@@ -217,202 +563,184 @@
             color: #eee;
             border-color: #555;
         }
-
-        /* Mic Circle specific styles from style.css (duplicated here for reference, but main definition is in style.css) */
-        .mic-circle {
-            width: 100px; /* Adjusted size */
-            height: 100px; /* Adjusted size */
-            border-radius: 50%;
-            background: radial-gradient(#00e5ff, #007acc);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
-            position: relative;
-            cursor: grab;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-            color: white; /* Ensure text is visible on gradient */
-        }
-        .mic-circle img {
-            width: 70px; /* Adjusted size */
-            height: 70px; /* Adjusted size */
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            margin-bottom: 4px;
-        }
-        .mic-circle .mic-name {
-            font-weight: 600;
-            font-size: 0.9rem; /* Adjusted font size */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        .mic-circle.active {
-            box-shadow: 0 0 0 5px #00e676, 0 0 20px #00e676;
-            animation: pulse-mic 1s infinite;
-        }
-        @keyframes pulse-mic {
-            0% { box-shadow: 0 0 0 5px #00e676; }
-            50% { box-shadow: 0 0 0 10px #00e676; }
-            100% { box-shadow: 0 0 0 5px #00e676; }
-        }
-        .mic-circle.muted {
-            filter: grayscale(100%);
-            opacity: 0.6;
-            border: 2px dashed red;
-        }
-        .mic-circle.admin::after {
-            content: "👑";
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            font-size: 20px;
-            z-index: 10;
-        }
-        .mic-circle.vip {
-            border: 3px solid gold !important;
-            box-shadow: 0 0 10px gold !important;
-        }
-        .user-status {
-            position: absolute;
-            bottom: 4px;
-            right: 4px;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            border: 2px solid white;
-            z-index: 5;
-        }
-        .online { background-color: #28a745; }
-        .offline { background-color: #6c757d; }
-        .level-badge {
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            background-color: #007bff;
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 5px;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            z-index: 10;
-        }
-        .gift-badge {
-            position: absolute;
-            bottom: -5px;
-            right: -5px;
-            background-color: #ffc107;
-            color: black;
-            font-size: 0.7rem;
-            padding: 2px 5px;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            z-index: 10;
-        }
-        .react-score {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            font-size: 0.9rem;
-            padding: 4px 8px;
-            border-radius: 1rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none; /* Allow clicks to pass through to mic */
-        }
-        .mic-circle:hover .react-score {
-            opacity: 1;
-        }
     </style>
 </head>
 <body>
     <div id="room-container">
-        <!-- Top Controls -->
-        <div id="controls">
-            <button id="toggle-mic-btn" class="button bg-green-500 hover:bg-green-600">🎤 تشغيل المايك</button>
-            <button id="toggle-music-btn" class="button bg-blue-500 hover:bg-blue-600">🎵 تشغيل/إيقاف الموسيقى</button>
-            <button id="toggle-dark-mode-btn" class="button bg-gray-700 hover:bg-gray-800">🌙 الوضع الليلي</button>
-            <button id="mic-lock-btn" class="button bg-red-500 hover:bg-red-600">🔒 قفل/فتح المايك</button>
-            <button id="assign-moderator-btn" class="button bg-green-500 hover:bg-green-600">🛡️ تعيين مشرف</button>
-            <button id="ban-user-btn" class="button bg-red-700 hover:bg-red-800">⛔ حظر مستخدم</button>
-            <button id="report-user-btn" class="button bg-yellow-500 hover:bg-yellow-600">⚠️ تبليغ عن مستخدم</button>
-            <button id="make-announcement-btn" class="button bg-purple-500 hover:bg-purple-600">📣 إعلان</button>
-            <button id="mute-all-users-btn" class="button bg-orange-500 hover:bg-orange-600">🔇 كتم الجميع</button>
-            <button id="pin-message-btn" class="button bg-teal-500 hover:bg-teal-600">📌 تثبيت رسالة</button>
-            <button id="copy-room-link-btn" class="button bg-indigo-500 hover:bg-indigo-600">🔗 مشاركة الغرفة</button>
-            <button id="exit-room-btn" class="button bg-red-600 hover:bg-red-700">🚪 خروج</button>
-            <button id="simulate-xp-btn" class="button bg-blue-700 hover:bg-blue-800">✨ كسب XP</button>
-            <button id="show-top-users-btn" class="button bg-purple-700 hover:bg-purple-800" onclick="window.location.href='top_users.html'">🏆 المتصدرون</button>
+        <!-- Top Bar - User Info & Global Controls -->
+        <div id="top-bar">
+            <div class="user-info">
+                <img id="current-user-avatar" src="https://placehold.co/40x40/cccccc/333333?text=User" alt="User Avatar"/>
+                <span id="current-username">اسم المستخدم</span>
+                <span id="current-user-id">ID: 123456</span>
+            </div>
+            <div class="global-controls">
+                <button id="toggle-music-btn">🎵 موسيقى</button>
+                <button id="toggle-dark-mode-btn">🌙 الوضع</button>
+            </div>
         </div>
 
-        <!-- Mic Grid Area -->
-        <div id="mics-grid">
-            <!-- Mic circles will be dynamically added here by room_ui.js -->
-            <!-- Example Mic (will be replaced by dynamic content) -->
-            <div class="mic-circle flex flex-col items-center justify-center p-2 text-center text-sm cursor-pointer relative" data-user-id="dummyUser1">
-                <img src="https://placehold.co/80x80/007bff/ffffff?text=User1" alt="User 1" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md mb-1"/>
-                <span class="mic-name text-white font-semibold text-shadow-sm">مستخدم تجريبي 1</span>
+        <!-- Stage Mics Grid - Main central area for featured speakers -->
+        <div id="stage-mics-grid">
+            <!-- 10 fixed stage mic slots -->
+            <div class="stage-mic-slot" data-mic-index="1">
+                <span class="mic-number">1</span>
+                <!-- Content for occupied mic will be added by JS -->
+            </div>
+            <div class="stage-mic-slot" data-mic-index="2">
+                <span class="mic-number">2</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="3">
+                <span class="mic-number">3</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="4">
+                <span class="mic-number">4</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="5">
+                <span class="mic-number">5</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="6">
+                <span class="mic-number">6</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="7">
+                <span class="mic-number">7</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="8">
+                <span class="mic-number">8</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="9">
+                <span class="mic-number">9</span>
+            </div>
+            <div class="stage-mic-slot" data-mic-index="10">
+                <span class="mic-number">10</span>
+            </div>
+        </div>
+
+        <!-- Central Announcement/Message Area -->
+        <div id="central-message-area" class="hidden">
+            <h3 class="font-bold text-xl mb-2">📣 إعلان هام!</h3>
+            <p>مرحباً بكم في الغرفة! يرجى الالتزام بقواعد الاحترام المتبادل.</p>
+        </div>
+        
+        <!-- Button to request mic (added for stage mics) -->
+        <button id="request-mic-btn" class="button bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full text-lg font-bold mb-4 shadow-lg">
+            🎤 طلب صعود المايك
+        </button>
+
+        <!-- General Mics Grid - For other users in the room (smaller) -->
+        <div id="general-mics-grid">
+            <!-- General user mic circles will be dynamically added here by JS -->
+            <!-- Example General Mic (will be replaced by dynamic content) -->
+            <div class="general-mic-circle flex flex-col items-center justify-center relative" data-user-id="generalUser1">
+                <img src="https://placehold.co/50x50/ff0000/ffffff?text=U2" alt="General User 1" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"/>
+                <span class="mic-name text-white font-semibold text-shadow-sm">مستخدم عادي</span>
                 <span class="user-status online"></span>
-                <div class="level-badge">🥉</div>
-                <div class="gift-badge">🎁</div>
-                <div class="react-score">🔥 0</div>
             </div>
         </div>
 
-        <!-- Chat Box -->
-        <div id="chat-box-container">
-            <div id="chat-messages" class="flex-grow">
-                <!-- Chat messages will be dynamically added here -->
+        <!-- Bottom Control Bar -->
+        <div id="bottom-controls">
+            <div class="control-button" id="toggle-mic-btn-bottom">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3.53-2.64 6.43-6 6.92V21h-2v-3.08c-3.36-.49-6-3.39-6-6.92h2c0 2.76 2.24 5 5 5s5-2.24 5-5h2z"/></svg>
+                <span>المايك</span>
             </div>
-            <div id="chat-input-area">
-                <input type="text" id="chat-input" placeholder="اكتب رسالة..." />
-                <button id="send-message-btn" class="button bg-blue-600 hover:bg-blue-700">إرسال</button>
-                <button id="send-gift-btn" class="button bg-pink-600 hover:bg-pink-700">🎁 هدية</button>
+            <div class="control-button" id="send-gift-btn-bottom">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-5-5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                <span>هدية</span>
+            </div>
+            <div class="control-button" id="toggle-chat-btn-bottom">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                <span>الدردشة</span>
+            </div>
+            <div class="control-button" id="show-panels-btn-bottom">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                <span>المزيد</span>
+            </div>
+            <div class="control-button" id="exit-room-btn-bottom">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>خروج</span>
             </div>
         </div>
     </div>
 
-    <!-- Floating Panels and Popups -->
-    <div id="stayTimer" class="floating-panel">⏳ مدة التواجد: <span id="timer">00:00</span></div>
-    <div id="entryLog" class="floating-panel">
-        <h3 class="font-bold text-lg mb-2">📜 سجل الدخول والخروج:</h3>
-        <ul id="logList" class="list-none p-0 m-0 text-sm"></ul>
-    </div>
-    <div id="pinnedMessage" class="floating-panel"></div>
-    <div id="online-counter" class="floating-panel">👥 المتصلين الآن: <span id="onlineCount">0</span></div>
-    <div id="moderatorList" class="floating-panel"></div>
-    <div id="userDisplay" class="floating-panel">
-        <h3 class="font-bold text-lg mb-2">👤 المستخدم:</h3>
-        <span id="userBadgeName">جارٍ التحميل...</span>
-        <div class="mt-2">
-            <p><strong>نقاطك:</strong> <span id="xpCounter">0</span></p>
-            <p><strong>المستوى:</strong> <span id="levelDisplay">1</span></p>
-            <p><strong>الهدايا:</strong> <span id="giftCounter">0</span></p>
+    <!-- Chat Box - Positioned to the side/bottom-right -->
+    <div id="chat-box-container">
+        <div id="chat-messages">
+            <!-- Chat messages will be dynamically added here -->
+        </div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input" placeholder="اكتب رسالة..." />
+            <button id="send-message-btn" class="button bg-blue-600 hover:bg-blue-700">إرسال</button>
         </div>
     </div>
-    <div id="topUsersPanel" class="floating-panel">
-        <h3 class="font-bold text-lg mb-2">🏆 أفضل 5 مستخدمين:</h3>
-        <ol id="topUsersList" class="list-decimal list-inside p-0 m-0 text-sm">
-            <li>مستخدم 1 - 300 XP</li>
-            <li>مستخدم 2 - 240 XP</li>
-            <li>مستخدم 3 - 180 XP</li>
-            <li>مستخدم 4 - 120 XP</li>
-            <li>مستخدم 5 - 100 XP</li>
-        </ol>
+
+    <!-- Floating Panels Container (holds all side panels) -->
+    <div id="floating-panels-container">
+        <div id="stayTimer" class="floating-panel-item">⏳ مدة التواجد: <span id="timer">00:00</span></div>
+        <div id="entryLog" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">📜 سجل الدخول والخروج:</h3>
+            <ul id="logList" class="list-none p-0 m-0 text-sm"></ul>
+        </div>
+        <div id="online-counter" class="floating-panel-item bg-blue-500 text-white">👥 المتصلين الآن: <span id="onlineCount">0</span></div>
+        <div id="moderatorList" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">🛡️ المشرفون:</h3>
+            <ul id="moderatorListContent" class="list-none p-0 m-0 text-sm"><li>لا يوجد مشرفون حاليًا.</li></ul>
+        </div>
+        <div id="userDisplay" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">👤 المستخدم:</h3>
+            <span id="userBadgeName">جارٍ التحميل...</span>
+            <div class="mt-2">
+                <p><strong>نقاطك:</strong> <span id="xpCounter">0</span></p>
+                <p><strong>المستوى:</strong> <span id="levelDisplay">1</span></p>
+                <p><strong>الهدايا:</strong> <span id="giftCounter">0</span></p>
+            </div>
+        </div>
+        <div id="topUsersPanel" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">🏆 أفضل 5 مستخدمين:</h3>
+            <ol id="topUsersList" class="list-decimal list-inside p-0 m-0 text-sm">
+                <li>مستخدم 1 - 300 XP</li>
+                <li>مستخدم 2 - 240 XP</li>
+                <li>مستخدم 3 - 180 XP</li>
+                <li>مستخدم 4 - 120 XP</li>
+                <li>مستخدم 5 - 100 XP</li>
+            </ol>
+        </div>
+        <div id="honorBoard" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">🏅 لوحة الشرف:</h3>
+            <ul id="honorList" class="list-none p-0 m-0 text-sm">
+                <li>1. -</li>
+                <li>2. -</li>
+                <li>3. -</li>
+            </ul>
+        </div>
+        <div id="achievements-box" class="floating-panel-item"></div>
     </div>
-    <div id="honorBoard" class="floating-panel">
-        <h3 class="font-bold text-lg mb-2">🏅 لوحة الشرف:</h3>
-        <ul id="honorList" class="list-none p-0 m-0 text-sm">
-            <li>1. -</li>
-            <li>2. -</li>
-            <li>3. -</li>
-        </ul>
+
+    <!-- User Info Popup (when clicking on a mic) -->
+    <div id="user-info-popup" class="popup">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">👤 معلومات المستخدم</h3>
+        <img id="popup-user-avatar" src="https://placehold.co/80x80/cccccc/333333?text=User" alt="User Avatar" class="w-24 h-24 rounded-full object-cover border-4 border-blue-500 mx-auto mb-4 shadow-md"/>
+        <p class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2"><strong>الاسم:</strong> <span id="popup-username"></span></p>
+        <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>ID:</strong> <span id="popup-userid"></span> <button onclick="copyToClipboard(document.getElementById('popup-userid').textContent)" class="text-blue-500 hover:underline text-sm ml-2">نسخ</button></p>
+        <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>النبذة:</strong> <span id="popup-bio"></span></p>
+        <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>نقاط الخبرة (XP):</strong> <span id="popup-xp"></span></p>
+        <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>المستوى:</strong> <span id="popup-level"></span> <span id="popup-level-badge"></span></p>
+        <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>الرتبة:</strong> <span id="popup-role"></span></p>
+
+        <div class="flex flex-wrap justify-center gap-3 mt-6">
+            <button onclick="sendPrivateMessagePopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-blue-600 hover:bg-blue-700">✉️ رسالة خاصة</button>
+            <button onclick="sendGiftPopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-pink-600 hover:bg-pink-700">🎁 إرسال هدية</button>
+            <button onclick="increaseReaction(document.getElementById('popup-userid').textContent)" class="button bg-red-500 hover:bg-red-600">🔥 تفاعل</button>
+            <!-- Moderation buttons will be dynamically added/removed by JS based on user role -->
+            <button id="popup-mute-btn" class="button bg-yellow-500 hover:bg-yellow-600">🔇 كتم</button>
+            <button id="popup-kick-btn" class="button bg-red-700 hover:bg-red-800">🚫 طرد</button>
+            <button id="popup-ban-btn" class="button bg-red-900 hover:bg-red-950">⛔ حظر</button>
+            <button id="popup-report-btn" class="button bg-orange-500 hover:bg-orange-600">⚠️ تبليغ</button>
+            <button id="popup-mic-up-btn" class="button bg-green-500 hover:bg-green-600">🎤 صعود المايك</button>
+            <button id="popup-mic-down-btn" class="button bg-red-500 hover:bg-red-600">⬇️ نزول المايك</button>
+            <button onclick="closePopup('user-info-popup')" class="button bg-gray-500 hover:bg-gray-600">❌ إغلاق</button>
+        </div>
     </div>
-    <div id="achievements-box" class="floating-panel"></div>
 
     <!-- Global Popups/Toasts (managed by utils.js) -->
     <div id="welcome-popup" class="popup">
@@ -425,7 +753,7 @@
 
     <!-- Audio Elements -->
     <audio id="bg-music" loop></audio>
-    <audio id="mic-audio" muted></audio> <!-- Added muted attribute for local feedback -->
+    <audio id="mic-audio" muted></audio>
     <audio id="welcomeAudio" src="/assets/sounds/welcome.mp3"></audio>
     <audio id="newMessageSound" src="/assets/sounds/new-message.mp3"></audio>
     <audio id="giftSound" src="/assets/sounds/gift-sound.mp3"></audio>
@@ -434,7 +762,7 @@
     <script type="module" src="/js/main.js"></script>
     <script type="module" src="/js/room_ui.js"></script>
     <script type="module" src="/js/room_logic.js"></script>
-    <script type="module" src="/js/webrtc.js"></script> <!-- New WebRTC module -->
+    <script type="module" src="/js/webrtc.js"></script>
 
     <script type="module">
         // Import functions from other modules to make them accessible globally if needed,
@@ -442,7 +770,8 @@
         import {
             sendMessage, sendGift, toggleMusic, toggleMicLock, makeAnnouncement,
             muteAllUsers, pinMessage, copyRoomLink, exitRoom, simulateXPAction,
-            toggleDarkMode, assignModerator, reportUser, changeUsername
+            toggleDarkMode, assignModerator, reportUser, changeUsername,
+            requestMicAscent, requestMicDescent // New functions for mic stage
         } from '/js/room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
@@ -460,11 +789,16 @@
         window.assignModerator = assignModerator;
         window.reportUser = reportUser;
         window.changeUsername = changeUsername;
+        window.requestMicAscent = requestMicAscent;
+        window.requestMicDescent = requestMicDescent;
 
         // Import UI functions that need to be called by inline events or directly
         import {
             showUserInfoPopup, closePopup, showWelcomePopup, closeWelcomePopup,
-            updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay
+            updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
+            toggleChatBox, toggleFloatingPanels,
+            populateStageMics, populateGeneralMics, // New functions for mic grids
+            updateUserInfoPopup // New function to populate popup details
         } from '/js/room_ui.js';
 
         window.showUserInfoPopup = showUserInfoPopup;
@@ -475,6 +809,11 @@
         window.updateLevelDisplay = updateLevelDisplay;
         window.updateGiftCounterDisplay = updateGiftCounterDisplay;
         window.updateUserBadgeNameDisplay = updateUserBadgeNameDisplay;
+        window.toggleChatBox = toggleChatBox;
+        window.toggleFloatingPanels = toggleFloatingPanels;
+        window.populateStageMics = populateStageMics;
+        window.populateGeneralMics = populateGeneralMics;
+        window.updateUserInfoPopup = updateUserInfoPopup; // Expose new function
 
         // For mic-specific actions from popup (e.g., mute, kick, ban)
         import { toggleUserMute, kickUser, banUser, sendPrivateMessagePopup, sendGiftPopup, increaseReaction } from '/js/room_ui.js';
@@ -487,7 +826,19 @@
 
         // Import WebRTC specific functions
         import { toggleLocalMic } from '/js/webrtc.js';
-        window.toggleLocalMic = toggleLocalMic; // Expose for the new button
+        document.getElementById('toggle-mic-btn-bottom').addEventListener('click', toggleLocalMic);
+        // Removed the old request-mic-btn as it's now handled by the popup or a different logic.
+
+        // Event listeners for bottom controls
+        document.getElementById('toggle-chat-btn-bottom').addEventListener('click', toggleChatBox);
+        document.getElementById('show-panels-btn-bottom').addEventListener('click', toggleFloatingPanels);
+        document.getElementById('exit-room-btn-bottom').addEventListener('click', exitRoom);
+        document.getElementById('send-gift-btn-bottom').addEventListener('click', () => {
+            // This button will now show a general gift popup or direct to a gift selection
+            // For now, it could open a simplified gift sending interface or a general gift to room
+            showCustomAlert('إرسال هدية عامة أو اختيار مستخدم من المايكات.', 'info');
+            // This might need a more complex popup for selecting recipient or gift type
+        });
 
         // Initial setup for the page after all scripts are loaded
         document.addEventListener('DOMContentLoaded', () => {
