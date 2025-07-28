@@ -6,18 +6,20 @@
  */
 
 // --- Firebase Imports ---
+// استيراد الوحدات الضرورية من Firebase SDK
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
 // --- Global Variables (Provided by Canvas Environment) ---
-// These variables are automatically injected by the Canvas environment.
-// We provide fallback values for local development if they are not defined.
+// هذه المتغيرات يتم توفيرها تلقائياً بواسطة بيئة Canvas.
+// نوفر قيمًا احتياطية للتطوير المحلي إذا لم تكن معرفة.
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-airchat-app';
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 // --- Firebase Initialization ---
+// تهيئة تطبيق Firebase وخدمات Firestore و Authentication
 const firebaseApp = initializeApp(firebaseConfig);
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
@@ -25,42 +27,42 @@ export const auth = getAuth(firebaseApp);
 console.log('Firebase Client SDK initialized.');
 
 // --- Socket.io Connection ---
-// Assumes Socket.io client library is loaded in HTML (<script src="/socket.io/socket.io.js"></script>)
+// تهيئة اتصال Socket.io (نفترض أن مكتبة عميل Socket.io محملة في HTML)
 export const socket = io();
 console.log('Socket.io client connected.');
 
 // --- Current User State ---
-// This object will hold the authenticated user's data
+// هذا الكائن سيحتوي على بيانات المستخدم المصادق عليه
 export const currentUser = {
     id: null,
     username: 'ضيف',
     email: null,
-    avatar: 'https://placehold.co/50x50/cccccc/333333?text=G',
-    role: 'guest', // Default role until authenticated
+    avatar: 'https://placehold.co/50x50/cccccc/333333?text=G', // صورة رمزية افتراضية
+    role: 'guest', // دور افتراضي حتى يتم المصادقة
     xp: 0,
     giftsReceived: 0,
-    isOnline: false,
+    isOnline: false, // حالة الاتصال الأولية
     isMuted: false,
     isOnStage: false,
     canMicAscent: true,
     bio: ''
 };
 
-// Authentication readiness flag
+// علامة جاهزية المصادقة
 export let isAuthReady = false;
 
 // --- Firebase Authentication Listener ---
-// This listener runs whenever the user's sign-in state changes.
+// هذا المستمع يعمل كلما تغيرت حالة تسجيل دخول المستخدم.
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // User is signed in.
+        // المستخدم مسجل الدخول.
         console.log('Firebase Auth: User is signed in:', user.uid);
         currentUser.id = user.uid;
         currentUser.email = user.email;
 
         try {
-            // Fetch user profile from Firestore
-            // Use the simplified path 'users' that admin SDK also uses
+            // جلب ملف تعريف المستخدم من Firestore
+            // استخدام المسار المبسط 'users' الذي يستخدمه Admin SDK أيضًا
             const userDocRef = doc(db, 'users', user.uid);
             const userDocSnap = await getDoc(userDocRef);
 
@@ -72,18 +74,18 @@ onAuthStateChanged(auth, async (user) => {
                 currentUser.xp = userData.xp || 0;
                 currentUser.giftsReceived = userData.giftsReceived || 0;
                 currentUser.bio = userData.bio || 'لا يوجد سيرة ذاتية.';
-                currentUser.canMicAscent = userData.canMicAscent !== false; // Default to true
+                currentUser.canMicAscent = userData.canMicAscent !== false; // الافتراضي هو true
 
-                // Update online status and last active time
+                // تحديث حالة الاتصال ووقت آخر نشاط للمستخدم
                 await setDoc(userDocRef, {
                     isOnline: true,
                     lastActive: Date.now()
-                }, { merge: true });
+                }, { merge: true }); // استخدام merge: true لتجنب الكتابة فوق الحقول الموجودة
 
                 console.log('User profile loaded:', currentUser.username);
             } else {
-                // This case should ideally be handled during registration in auth_logic.js
-                // But as a fallback, create a basic profile if user exists in Auth but not Firestore
+                // هذه الحالة يجب أن يتم التعامل معها بشكل مثالي أثناء التسجيل في auth_logic.js
+                // ولكن كحل بديل، قم بإنشاء ملف تعريف أساسي إذا كان المستخدم موجودًا في Auth ولكن ليس في Firestore
                 await setDoc(userDocRef, {
                     userId: user.uid,
                     username: user.displayName || 'مستخدم جديد',
@@ -105,9 +107,9 @@ onAuthStateChanged(auth, async (user) => {
                 console.log('New user profile created as fallback:', currentUser.username);
             }
 
-            isAuthReady = true; // Mark authentication as ready
+            isAuthReady = true; // وضع علامة على أن المصادقة جاهزة
 
-            // Redirect to index.html if not already there and not on auth.html
+            // إعادة التوجيه إلى index.html إذا لم يكن المستخدم هناك بالفعل وليس في auth.html
             if (window.location.pathname === '/' || window.location.pathname === '/auth.html') {
                 window.location.href = '/index.html';
             }
@@ -115,10 +117,10 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) {
             console.error('Error fetching/creating user profile in main.js:', error);
             showCustomAlert('خطأ في تحميل بيانات المستخدم. يرجى إعادة المحاولة.', 'error');
-            isAuthReady = true; // Still mark as ready even with error to unblock other logic
+            isAuthReady = true; // لا يزال يتم وضع علامة على أنه جاهز حتى مع وجود خطأ لفك حظر المنطق الآخر
         }
     } else {
-        // User is signed out.
+        // المستخدم غير مسجل الدخول.
         console.log('Firebase Auth: No user is signed in.');
         currentUser.id = null;
         currentUser.username = 'ضيف';
@@ -127,15 +129,15 @@ onAuthStateChanged(auth, async (user) => {
         currentUser.role = 'guest';
         currentUser.xp = 0;
         currentUser.giftsReceived = 0;
-        currentUser.isOnline = false;
+        currentUser.isOnline = false; // تأكد من أن هذه القيمة صحيحة هنا
         currentUser.isMuted = false;
         currentUser.isOnStage = false;
         currentUser.canMicAscent = true;
         currentUser.bio = '';
 
-        isAuthReady = true; // Mark authentication as ready
+        isAuthReady = true; // وضع علامة على أن المصادقة جاهزة
 
-        // Redirect to auth.html if not already on it
+        // إعادة التوجيه إلى auth.html إذا لم يكن المستخدم على هذه الصفحة بالفعل
         if (window.location.pathname !== '/auth.html') {
             window.location.href = '/auth.html';
         }
@@ -145,10 +147,10 @@ onAuthStateChanged(auth, async (user) => {
 // --- Global Utility Functions (Alerts & Confirms) ---
 
 /**
- * Displays a custom alert message (toast notification).
- * @param {string} message - The message to display.
- * @param {string} type - Type of alert (e.g., 'success', 'error', 'info', 'warning').
- * @param {number} duration - How long the alert should be visible in milliseconds.
+ * يعرض رسالة تنبيه مخصصة (إشعار توست).
+ * @param {string} message - الرسالة المراد عرضها.
+ * @param {string} type - نوع التنبيه (مثل 'success', 'error', 'info', 'warning').
+ * @param {number} duration - المدة التي يجب أن يكون فيها التنبيه مرئيًا بالمللي ثانية.
  */
 export function showCustomAlert(message, type = 'info', duration = 3000) {
     const toast = document.getElementById('toast');
@@ -159,15 +161,15 @@ export function showCustomAlert(message, type = 'info', duration = 3000) {
     toast.textContent = message;
     toast.className = `toast-notification show ${type}`;
     setTimeout(() => {
-        toast.className = 'toast-notification'; // Hide after duration
+        toast.className = 'toast-notification'; // إخفاء بعد المدة المحددة
     }, duration);
 }
 
 /**
- * Displays a custom confirmation dialog or input dialog.
- * @param {string} message - The confirmation message or prompt.
- * @param {'confirm' | 'input'} inputType - 'confirm' for yes/no, 'input' for text input.
- * @returns {Promise<boolean|string|null>} Resolves with true/false for confirm, string for input, null if cancelled.
+ * يعرض مربع حوار تأكيد مخصص أو مربع حوار إدخال.
+ * @param {string} message - رسالة التأكيد أو المطالبة.
+ * @param {'confirm' | 'input'} inputType - 'confirm' للرد بنعم/لا، 'input' لإدخال نص.
+ * @returns {Promise<boolean|string|null>} يحل مع true/false للتأكيد، سلسلة نصية للإدخال، null إذا تم الإلغاء.
  */
 export function showCustomConfirm(message, inputType = 'confirm') {
     return new Promise((resolve) => {
@@ -176,11 +178,11 @@ export function showCustomConfirm(message, inputType = 'confirm') {
 
         if (!popup || !overlay) {
             console.error('Custom popup elements not found. Cannot show confirm dialog.');
-            resolve(false); // Resolve with false if elements are missing
+            resolve(false); // حل مع false إذا كانت العناصر مفقودة
             return;
         }
 
-        // Clear previous content
+        // مسح المحتوى السابق
         popup.innerHTML = '';
 
         const inputHtml = inputType === 'input' ?
@@ -206,8 +208,8 @@ export function showCustomConfirm(message, inputType = 'confirm') {
         const cleanup = () => {
             popup.classList.remove('show');
             overlay.classList.remove('show');
-            // No need to remove elements, just hide them.
-            // This assumes popup and overlay are static elements in HTML.
+            // لا حاجة لإزالة العناصر، فقط إخفائها.
+            // هذا يفترض أن popup و overlay هما عناصر ثابتة في HTML.
         };
 
         confirmYesBtn.onclick = () => {
@@ -219,14 +221,14 @@ export function showCustomConfirm(message, inputType = 'confirm') {
             resolve(inputType === 'input' ? null : false);
         };
 
-        // Allow clicking outside to close for confirm type only
+        // السماح بالنقر خارج المربع للإغلاق لنوع التأكيد فقط
         if (inputType === 'confirm') {
             overlay.onclick = () => {
                 cleanup();
-                resolve(false); // Treat overlay click as 'No' for confirm
+                resolve(false); // اعتبار النقر على التراكب بمثابة 'لا' للتأكيد
             };
         } else {
-            overlay.onclick = null; // Disable closing by clicking overlay for input type
+            overlay.onclick = null; // تعطيل الإغلاق بالنقر على التراكب لنوع الإدخال
         }
     });
 }
