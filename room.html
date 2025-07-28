@@ -6,21 +6,24 @@
     <title>الغرفة الصوتية - AirChat</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link to global styles -->
+    <!-- Font Awesome for icons (if needed, or use SVG directly) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Link to global styles (custom styles will be here eventually) -->
     <link rel="stylesheet" href="./css/style.css">
     <style>
         /* Base styles for the entire page */
         body {
-            background-color: #8B0000; /* Deep Red for a bold look */
-            background-image: url('/assets/images/room-bg-eagle.jpg'); /* Example background image */
+            background-color: #8B0000; /* Deep Red for a bold, attractive look */
+            background-image: url('/assets/images/room-bg-eagle.jpg'); /* Eagle background as per user's preference */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            background-attachment: fixed; /* Keep background fixed when scrolling */
             transition: background-image 0.5s ease, background-color 0.5s ease;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow: hidden; /* Prevent body scroll, let specific divs scroll */
             font-family: 'Inter', sans-serif;
             direction: rtl; /* Right-to-left for Arabic */
             color: #e0e0e0; /* Light text color for dark background */
@@ -32,8 +35,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px;
+            justify-content: space-between; /* Push top/bottom elements apart */
+            padding: 0; /* No padding on main container, handled by sub-elements */
             position: relative;
             width: 100%;
             min-height: 100vh;
@@ -45,225 +48,295 @@
             top: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7); /* Darker, more opaque */
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 200;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            z-index: 200; /* Highest z-index */
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
             color: white;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
         }
         #top-bar .user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: 600;
         }
         #top-bar .user-info img {
-            width: 40px;
-            height: 40px;
+            width: 45px; /* Slightly larger avatar */
+            height: 45px;
             border-radius: 50%;
-            border: 2px solid #007bff;
+            border: 3px solid #FFD700; /* Gold border for premium feel */
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+        #top-bar .user-id {
+            font-size: 0.8rem;
+            opacity: 0.8;
         }
         #top-bar .global-controls {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
         #top-bar .global-controls button {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.15);
             color: white;
-            padding: 5px 10px;
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
-            transition: background-color 0.2s ease;
+            padding: 8px 15px;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         #top-bar .global-controls button:hover {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
         }
 
         /* Stage Mics Grid - Main central area for featured speakers */
         #stage-mics-grid {
             display: grid;
-            grid-template-columns: repeat(5, minmax(100px, 1fr)); /* 5 mics per row */
-            gap: 2rem; /* Spacing between mics */
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); /* Larger and more flexible */
+            gap: 2.5rem; /* Good spacing */
             padding: 20px;
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 800px; /* Max width for the stage area */
+            max-width: 1000px; /* Wider stage area */
             margin-top: 80px; /* Space for top bar */
             margin-bottom: 20px; /* Space before central message/chat */
             z-index: 50;
             flex-shrink: 0;
+            flex-grow: 1; /* Allow it to take vertical space */
+            align-content: center; /* Center content vertically */
+            overflow-y: auto; /* Allow scrolling if many mics */
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Individual Stage Mic Slot */
         .stage-mic-slot {
-            width: 120px; /* Fixed size for stage mics */
-            height: 120px;
+            width: 140px; /* Even larger fixed size for stage mics */
+            height: 140px;
             border-radius: 50%;
-            background: radial-gradient(#333, #000); /* Darker, empty mic slot */
+            background: radial-gradient(circle at 70% 30%, #4a0000, #2a0000); /* Darker red gradient for empty slot */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
             position: relative;
-            color: #ccc; /* Lighter text for empty slot */
+            color: #ccc;
             font-weight: bold;
-            font-size: 1.2rem;
-            border: 2px dashed #555; /* Dashed border for empty slot */
+            font-size: 1.3rem;
+            border: 3px dashed rgba(255, 255, 255, 0.3); /* Lighter dashed border for empty */
             transition: all 0.3s ease;
-            cursor: pointer; /* Make them clickable */
+            cursor: pointer;
+            overflow: hidden; /* Hide overflow for content */
         }
         .stage-mic-slot.occupied {
-            background: radial-gradient(#6a0dad, #4b0082); /* Deeper purple gradient when occupied */
-            box-shadow: 0 0 20px rgba(106, 13, 173, 0.6);
-            border: 3px solid transparent; /* Solid border when occupied */
+            background: radial-gradient(circle at 70% 30%, #FF4500, #B22222); /* Vibrant red gradient when occupied */
+            box-shadow: 0 0 25px rgba(255, 69, 0, 0.8);
+            border: 4px solid #FFD700; /* Gold border when occupied */
         }
         .stage-mic-slot.active { /* Speaking indicator */
-            box-shadow: 0 0 0 6px #00e676, 0 0 25px #00e676; /* Brighter green glow */
+            box-shadow: 0 0 0 8px #00FF7F, 0 0 30px #00FF7F; /* Bright green glow */
             animation: pulse-mic 1s infinite;
-            border-color: #00e676; /* Green border when active */
+            border-color: #00FF7F; /* Green border when active */
         }
         @keyframes pulse-mic {
-            0% { box-shadow: 0 0 0 6px #00e676; }
-            50% { box-shadow: 0 0 0 12px #00e676; }
-            100% { box-shadow: 0 0 0 6px #00e676; }
+            0% { box-shadow: 0 0 0 8px #00FF7F; }
+            50% { box-shadow: 0 0 0 16px #00FF7F; }
+            100% { box-shadow: 0 0 0 8px #00FF7F; }
         }
-
         .stage-mic-slot img {
-            width: 80px; /* Adjusted size */
-            height: 80px; /* Adjusted size */
+            width: 90px; /* Larger avatar */
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid white; /* Thicker white border */
-            margin-bottom: 6px; /* More space for name */
+            border: 4px solid white; /* Thicker white border */
+            margin-bottom: 8px; /* More space for name */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
         .stage-mic-slot .mic-name {
-            font-weight: 700; /* Bolder name */
-            font-size: 1rem; /* Larger font size */
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+            font-weight: 700;
+            font-size: 1.1rem; /* Larger font size */
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
             color: white;
         }
         .stage-mic-slot .mic-number {
             position: absolute;
-            top: 5px;
-            left: 5px;
-            background-color: rgba(0, 0, 0, 0.5);
+            top: 8px;
+            left: 8px;
+            background-color: rgba(0, 0, 0, 0.6);
             color: white;
-            padding: 2px 8px;
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 0.75rem;
+            font-size: 1rem;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         .stage-mic-slot .user-status {
             position: absolute;
-            bottom: 8px; /* Adjusted position */
-            right: 8px; /* Adjusted position */
-            width: 18px; /* Larger status indicator */
-            height: 18px;
+            bottom: 8px;
+            right: 8px;
+            width: 20px; /* Larger status indicator */
+            height: 20px;
             border-radius: 50%;
-            border: 2px solid white;
+            border: 3px solid white;
             z-index: 5;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
-        .online { background-color: #28a745; }
-        .offline { background-color: #6c757d; }
+        .online { background-color: #00FF7F; } /* Bright green for online */
+        .offline { background-color: #FF6347; } /* Tomato for offline */
         .stage-mic-slot.muted {
-            filter: grayscale(100%);
-            opacity: 0.6;
-            border-color: red; /* Red border for muted */
+            filter: grayscale(80%);
+            opacity: 0.7;
+            border-color: #FF6347; /* Tomato border for muted */
+            box-shadow: 0 0 15px rgba(255, 99, 71, 0.6);
         }
         .stage-mic-slot.admin::after {
             content: "👑";
             position: absolute;
-            top: -10px;
-            right: -10px;
-            font-size: 24px; /* Larger crown */
+            top: -12px;
+            right: -12px;
+            font-size: 28px; /* Larger crown */
             z-index: 10;
+            text-shadow: 0 0 5px gold;
         }
         .stage-mic-slot.vip {
-            border: 4px solid gold !important; /* Thicker gold border */
-            box-shadow: 0 0 15px gold !important;
+            border: 5px solid #FFD700 !important; /* Even thicker gold border */
+            box-shadow: 0 0 20px #FFD700 !important;
         }
         /* Hide badges/scores on stage mics by default */
         .stage-mic-slot .level-badge, .stage-mic-slot .gift-badge, .stage-mic-slot .react-score {
             display: none;
         }
 
+        /* Request Mic Button */
+        #request-mic-btn {
+            background: linear-gradient(45deg, #FF4500, #FF8C00); /* Orange-red gradient */
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 2rem; /* More rounded, pill-shaped */
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.5);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        #request-mic-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.7);
+        }
+
         /* General Mics Grid - For other users in the room (smaller) */
         #general-mics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* Smaller mics */
-            gap: 1rem;
-            padding: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); /* Slightly larger small mics */
+            gap: 1.2rem;
+            padding: 15px;
             width: 100%;
             max-width: 900px;
             margin-top: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 80px; /* Space for bottom bar */
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             z-index: 40;
-            background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background */
-            border-radius: 1rem;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.5); /* More opaque background */
+            border-radius: 1.5rem;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+            min-height: 100px; /* Ensure it has some height even if empty */
+            flex-shrink: 0;
         }
         .general-mic-circle {
-            width: 70px; /* Small size */
-            height: 70px;
+            width: 80px; /* Small size */
+            height: 80px;
             border-radius: 50%;
             background: radial-gradient(#00e5ff, #007acc); /* Blue gradient */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
             position: relative;
             cursor: pointer;
             transition: all 0.3s ease;
             flex-shrink: 0;
             color: white;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
+            border: 2px solid transparent; /* For active state */
         }
         .general-mic-circle img {
-            width: 50px;
-            height: 50px;
+            width: 55px; /* Larger avatar */
+            height: 55px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid white;
-            margin-bottom: 2px;
+            border: 3px solid white;
+            margin-bottom: 4px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
         .general-mic-circle .mic-name {
-            font-weight: 500;
-            font-size: 0.7rem;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
         }
         .general-mic-circle.active {
-            box-shadow: 0 0 0 3px #00e676, 0 0 15px #00e676;
+            box-shadow: 0 0 0 4px #00FF7F, 0 0 20px #00FF7F;
             animation: pulse-mic-small 1s infinite;
+            border-color: #00FF7F;
         }
         @keyframes pulse-mic-small {
-            0% { box-shadow: 0 0 0 3px #00e676; }
-            50% { box-shadow: 0 0 0 6px #00e676; }
-            100% { box-shadow: 0 0 0 3px #00e676; }
+            0% { box-shadow: 0 0 0 4px #00FF7F; }
+            50% { box-shadow: 0 0 0 8px #00FF7F; }
+            100% { box-shadow: 0 0 0 4px #00FF7F; }
         }
-        /* Inherit other mic-circle styles like muted, admin, vip, user-status */
-
+        /* Inherit other mic-circle styles like muted, admin, vip, user-status, badges */
+        .general-mic-circle .user-status {
+            bottom: 4px; /* Adjusted for smaller size */
+            right: 4px;
+            width: 16px;
+            height: 16px;
+        }
+        .general-mic-circle .level-badge, .general-mic-circle .gift-badge {
+            font-size: 0.6rem;
+            padding: 1px 4px;
+            border-radius: 0.4rem;
+        }
+        .general-mic-circle .react-score {
+            font-size: 0.8rem;
+            padding: 3px 6px;
+            border-radius: 1rem;
+        }
 
         /* Central Announcement/Message Area */
         #central-message-area {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px 30px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 25px 35px;
             border-radius: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
             text-align: center;
-            max-width: 80%;
+            max-width: 70%;
             width: fit-content;
             margin: 20px auto;
             z-index: 100;
             color: #333;
             display: none; /* Hidden by default, shown by JS */
+            backdrop-filter: blur(8px);
+        }
+        #central-message-area h3 {
+            color: #8B0000; /* Deep Red heading */
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        #central-message-area p {
+            font-size: 1.1rem;
+            line-height: 1.6;
         }
 
         /* Bottom Control Bar */
@@ -272,51 +345,57 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 0; /* No horizontal padding, handled by inner elements */
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 200;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
         }
         #bottom-controls .control-button {
             display: flex;
             flex-direction: column;
             align-items: center;
             color: white;
-            font-size: 0.75rem;
+            font-size: 0.7rem; /* Smaller font for text */
             font-weight: 600;
             gap: 4px;
             cursor: pointer;
             transition: transform 0.2s ease, color 0.2s ease;
+            flex: 1; /* Distribute space evenly */
+            padding: 5px 0; /* Add vertical padding */
         }
         #bottom-controls .control-button:hover {
-            transform: translateY(-3px);
-            color: #00e676;
+            transform: translateY(-4px); /* More pronounced lift */
+            color: #00FF7F; /* Bright green on hover */
         }
         #bottom-controls .control-button svg {
-            width: 28px;
-            height: 28px;
+            width: 30px; /* Larger icons */
+            height: 30px;
             fill: currentColor;
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
         }
 
         /* Chat Box - Positioned to the side/bottom-right */
         #chat-box-container {
             position: fixed;
-            bottom: 70px; /* Above bottom controls */
+            bottom: 80px; /* Above bottom controls */
             right: 20px; /* Positioned to the right */
-            width: 350px; /* Fixed width */
-            max-height: 400px; /* Max height for chat */
+            width: 380px; /* Wider chat box */
+            max-height: 450px; /* Taller chat box */
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.98); /* Almost opaque white */
             border-radius: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
             padding: 1.5rem;
             z-index: 95;
             display: none; /* Hidden by default, toggled by JS */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
         #chat-box-container.show {
             display: flex;
@@ -330,6 +409,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+            color: #333;
+            text-shadow: none;
         }
         #chat-input-area {
             display: flex;
@@ -338,51 +419,75 @@
         }
         #chat-input-area input {
             flex-grow: 1;
-            padding: 0.75rem 1rem;
+            padding: 0.8rem 1.2rem;
             border-radius: 0.75rem;
             border: 1px solid #d1d5db;
+            background-color: #f0f0f0;
+            color: #333;
         }
         #chat-input-area button {
-            padding: 0.75rem 1.25rem;
+            padding: 0.8rem 1.5rem;
             border-radius: 0.75rem;
             font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        /* Floating Panels (now more like side/toggleable elements) */
+        /* Floating Panels Container (holds all side panels) */
         #floating-panels-container {
             position: fixed;
             top: 80px; /* Below top bar */
             right: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            border-radius: 1rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.7); /* Darker, more opaque */
+            padding: 20px;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             z-index: 150;
-            color: #333;
+            color: #eee;
             transition: all 0.3s ease;
             display: none; /* Hidden by default, toggled by JS */
             flex-direction: column;
-            gap: 15px;
+            gap: 18px; /* More space between panels */
             max-height: calc(100vh - 180px); /* Adjust max height */
             overflow-y: auto;
+            backdrop-filter: blur(8px);
         }
         #floating-panels-container.show {
             display: flex;
         }
         .floating-panel-item { /* Individual panels within the container */
-            background-color: #f9f9f9;
-            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white */
+            padding: 15px;
+            border-radius: 1rem;
+            box-shadow: inset 0 0 8px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .floating-panel-item h3 {
+            color: #FFD700; /* Gold heading */
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .floating-panel-item ul, .floating-panel-item ol {
+            color: #ccc;
+        }
+        .floating-panel-item .button {
+            width: 100%; /* Full width buttons in panels */
+            padding: 10px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
             border-radius: 0.75rem;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .floating-panel-item .grid {
+            gap: 10px; /* Smaller gap for buttons grid */
         }
         body.dark-mode #floating-panels-container {
-            background-color: rgba(50, 50, 50, 0.9);
+            background-color: rgba(0, 0, 0, 0.8);
             color: #eee;
         }
         body.dark-mode .floating-panel-item {
-            background-color: #333;
+            background-color: rgba(255, 255, 255, 0.05);
             color: #eee;
-            box-shadow: inset 0 0 5px rgba(255,255,255,0.1);
+            box-shadow: inset 0 0 8px rgba(255,255,255,0.05);
         }
 
         /* User Info Popup (when clicking on a mic) */
@@ -391,134 +496,233 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            background-color: rgba(0, 0, 0, 0.95); /* Very dark, almost opaque */
+            padding: 35px;
+            border-radius: 2rem; /* More rounded */
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
             z-index: 250; /* Above everything else */
             display: none; /* Hidden by default */
             flex-direction: column;
             align-items: center;
-            color: #333;
+            color: #eee;
             max-width: 90%;
             text-align: center;
+            border: 2px solid #FFD700; /* Gold border */
+            backdrop-filter: blur(15px); /* Stronger blur */
         }
         #user-info-popup.show {
             display: flex;
         }
-        #user-info-popup .button {
-            margin-top: 10px;
+        #user-info-popup h3 {
+            color: #FFD700; /* Gold heading */
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
-        body.dark-mode #user-info-popup {
-            background-color: rgba(40, 40, 40, 0.95);
-            color: #eee;
+        #user-info-popup img {
+            width: 100px; /* Larger avatar */
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #00FF7F; /* Bright green border */
+            box-shadow: 0 0 15px rgba(0, 255, 127, 0.7);
+            margin-bottom: 20px;
+        }
+        #user-info-popup p {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+        #user-info-popup strong {
+            color: white;
+        }
+        #user-info-popup .button {
+            margin-top: 15px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        #user-info-popup .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        #popup-moderation-buttons {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for buttons */
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
         }
 
+
         /* Other popups/toasts */
+        .popup { /* General popup styling */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            color: white;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(8px);
+        }
+        .popup.show {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         #pinnedMessage { 
             position: fixed;
             top: 80px; 
             left: 50%; 
             transform: translateX(-50%); 
             display: none; 
-            background-color: #fff3cd; 
-            color: #856404; 
-            border: 1px solid #ffeeba; 
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #8B0000; /* Deep Red text */
+            border: 2px solid #FFD700; /* Gold border */
             font-weight: bold; 
-            padding: 10px 20px;
+            padding: 12px 25px;
             max-width: 80%;
             text-align: center;
             z-index: 210;
-            border-radius: 0.75rem;
+            border-radius: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
         }
-        #achievements-box { bottom: 150px; left: 50%; transform: translateX(-50%); display: none; }
+        #achievements-box { 
+            position: fixed;
+            bottom: 150px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: none; 
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #FFD700;
+            padding: 15px 25px;
+            border-radius: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            font-weight: bold;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
         #welcomeBanner { top: 40px; opacity: 0; transition: opacity 1s; }
-        #welcome-popup { display: none; }
-        #toast { bottom: 30px; }
+        #welcome-popup { display: none; } /* Handled by .popup styles */
+        #toast { 
+            position: fixed;
+            bottom: 30px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 500; /* Highest for toasts */
+            display: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        #toast.show { display: block; }
+        #toast.success { background-color: rgba(0, 128, 0, 0.8); }
+        #toast.error { background-color: rgba(255, 0, 0, 0.8); }
+        #toast.info { background-color: rgba(0, 100, 200, 0.8); }
+        #toast.warning { background-color: rgba(255, 165, 0, 0.8); }
 
 
         /* Responsive adjustments for mobile */
         @media (max-width: 768px) {
+            body {
+                overflow-y: auto; /* Allow scrolling on mobile */
+            }
             #top-bar {
                 padding: 8px 15px;
-            }
-            #top-bar .user-info {
-                font-size: 0.8rem;
+                font-size: 0.85rem;
             }
             #top-bar .user-info img {
-                width: 30px;
-                height: 30px;
+                width: 35px;
+                height: 35px;
             }
             #top-bar .global-controls button {
-                padding: 4px 8px;
-                font-size: 0.7rem;
+                padding: 6px 12px;
+                font-size: 0.75rem;
             }
 
             #stage-mics-grid {
-                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-                gap: 1rem;
-                margin-top: 60px;
-                margin-bottom: 10px; /* Reduced margin */
-            }
-            .stage-mic-slot {
-                width: 90px;
-                height: 90px;
-            }
-            .stage-mic-slot img {
-                width: 60px;
-                height: 60px;
-            }
-            .stage-mic-slot .mic-name {
-                font-size: 0.8rem;
-            }
-            .stage-mic-slot .mic-number {
-                font-size: 0.7rem;
-                padding: 1px 6px;
-            }
-            .stage-mic-slot.admin::after {
-                font-size: 18px;
-            }
-            .user-status {
-                width: 14px;
-                height: 14px;
-            }
-
-            #general-mics-grid {
-                grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-                gap: 0.5rem;
-                padding: 5px;
-                margin-top: 10px;
+                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Smaller mics on mobile */
+                gap: 1.5rem;
+                margin-top: 70px; /* Adjust for smaller top bar */
                 margin-bottom: 10px;
             }
-            .general-mic-circle {
-                width: 60px;
-                height: 60px;
-                font-size: 0.6rem;
+            .stage-mic-slot {
+                width: 100px;
+                height: 100px;
             }
-            .general-mic-circle img {
-                width: 40px;
-                height: 40px;
+            .stage-mic-slot img {
+                width: 65px;
+                height: 65px;
             }
-            .general-mic-circle .mic-name {
-                font-size: 0.6rem;
+            .stage-mic-slot .mic-name {
+                font-size: 0.9rem;
+            }
+            .stage-mic-slot .mic-number {
+                font-size: 0.8rem;
+                padding: 2px 6px;
+            }
+            .stage-mic-slot.admin::after {
+                font-size: 20px;
+            }
+            .user-status {
+                width: 16px;
+                height: 16px;
             }
 
             #request-mic-btn {
-                font-size: 0.9rem;
-                padding: 8px 16px;
+                font-size: 1rem;
+                padding: 12px 25px;
                 margin-bottom: 10px;
             }
 
+            #general-mics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+                gap: 0.8rem;
+                padding: 10px;
+                margin-top: 10px;
+                margin-bottom: 70px; /* Adjust for bottom bar */
+                min-height: 80px;
+            }
+            .general-mic-circle {
+                width: 65px;
+                height: 65px;
+            }
+            .general-mic-circle img {
+                width: 45px;
+                height: 45px;
+            }
+            .general-mic-circle .mic-name {
+                font-size: 0.65rem;
+            }
+
             #bottom-controls {
-                padding: 8px 10px;
+                padding: 8px 0;
             }
             #bottom-controls .control-button {
-                font-size: 0.65rem;
+                font-size: 0.6rem;
                 gap: 2px;
             }
             #bottom-controls .control-button svg {
-                width: 24px;
-                height: 24px;
+                width: 26px;
+                height: 26px;
             }
 
             #chat-box-container {
@@ -526,7 +730,7 @@
                 left: 50%;
                 transform: translateX(-50%);
                 bottom: 70px;
-                max-height: 300px;
+                max-height: 280px;
                 padding: 1rem;
             }
 
@@ -534,12 +738,53 @@
                 width: 95%;
                 left: 50%;
                 transform: translateX(-50%);
-                top: 70px; /* Below top bar */
+                top: 70px;
                 max-height: calc(100vh - 140px);
                 padding: 1rem;
             }
+            .floating-panel-item h3 {
+                font-size: 1rem;
+            }
+            .floating-panel-item .button {
+                font-size: 0.8rem;
+                padding: 8px 0;
+            }
             #user-info-popup {
-                padding: 20px;
+                padding: 25px;
+            }
+            #user-info-popup h3 {
+                font-size: 2rem;
+            }
+            #user-info-popup img {
+                width: 80px;
+                height: 80px;
+            }
+            #user-info-popup p {
+                font-size: 1rem;
+            }
+            #popup-moderation-buttons {
+                grid-template-columns: repeat(1, 1fr); /* Single column on mobile */
+                gap: 10px;
+            }
+            #popup-moderation-buttons .button {
+                 font-size: 0.9rem;
+                 padding: 10px 0;
+            }
+
+            #pinnedMessage {
+                top: 70px;
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+            #achievements-box {
+                bottom: 100px;
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            #toast {
+                bottom: 20px;
+                padding: 10px 20px;
+                font-size: 0.9rem;
             }
         }
 
@@ -623,7 +868,7 @@
         </div>
         
         <!-- Button to request mic (added for stage mics) -->
-        <button id="request-mic-btn" class="button bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full text-lg font-bold mb-4 shadow-lg">
+        <button id="request-mic-btn">
             🎤 طلب صعود المايك
         </button>
 
@@ -714,6 +959,22 @@
             </ul>
         </div>
         <div id="achievements-box" class="floating-panel-item"></div>
+        <!-- New panel for "More" options -->
+        <div id="more-options-panel" class="floating-panel-item">
+            <h3 class="font-bold text-lg mb-2">⚙️ خيارات إضافية:</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="mic-lock-btn" class="button bg-red-500 hover:bg-red-600 text-sm py-2">🔒 قفل/فتح المايك</button>
+                <button id="assign-moderator-btn" class="button bg-green-500 hover:bg-green-600 text-sm py-2">🛡️ تعيين مشرف</button>
+                <button id="ban-user-btn" class="button bg-red-700 hover:bg-red-800 text-sm py-2">⛔ حظر مستخدم</button>
+                <button id="report-user-btn" class="button bg-yellow-500 hover:bg-yellow-600 text-sm py-2">⚠️ تبليغ عن مستخدم</button>
+                <button id="make-announcement-btn" class="button bg-purple-500 hover:bg-purple-600 text-sm py-2">📣 إعلان</button>
+                <button id="mute-all-users-btn" class="button bg-orange-500 hover:bg-orange-600 text-sm py-2">🔇 كتم الجميع</button>
+                <button id="pin-message-btn" class="button bg-teal-500 hover:bg-teal-600 text-sm py-2">📌 تثبيت رسالة</button>
+                <button id="copy-room-link-btn" class="button bg-indigo-500 hover:bg-indigo-600 text-sm py-2">🔗 مشاركة الغرفة</button>
+                <button id="simulate-xp-btn" class="button bg-blue-700 hover:bg-blue-800 text-sm py-2">✨ كسب XP</button>
+                <button id="show-top-users-btn-panel" class="button bg-purple-700 hover:bg-purple-800 text-sm py-2">🏆 المتصدرون</button>
+            </div>
+        </div>
     </div>
 
     <!-- User Info Popup (when clicking on a mic) -->
@@ -727,17 +988,21 @@
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>المستوى:</strong> <span id="popup-level"></span> <span id="popup-level-badge"></span></p>
         <p class="text-md text-gray-600 dark:text-gray-300 mb-4"><strong>الرتبة:</strong> <span id="popup-role"></span></p>
 
-        <div class="flex flex-wrap justify-center gap-3 mt-6">
+        <div id="popup-moderation-buttons" class="flex flex-wrap justify-center gap-3 mt-6">
             <button onclick="sendPrivateMessagePopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-blue-600 hover:bg-blue-700">✉️ رسالة خاصة</button>
             <button onclick="sendGiftPopup(document.getElementById('popup-userid').textContent, document.getElementById('popup-username').textContent)" class="button bg-pink-600 hover:bg-pink-700">🎁 إرسال هدية</button>
             <button onclick="increaseReaction(document.getElementById('popup-userid').textContent)" class="button bg-red-500 hover:bg-red-600">🔥 تفاعل</button>
-            <!-- Moderation buttons will be dynamically added/removed by JS based on user role -->
+            
+            <!-- Moderation buttons - controlled by JS -->
             <button id="popup-mute-btn" class="button bg-yellow-500 hover:bg-yellow-600">🔇 كتم</button>
             <button id="popup-kick-btn" class="button bg-red-700 hover:bg-red-800">🚫 طرد</button>
             <button id="popup-ban-btn" class="button bg-red-900 hover:bg-red-950">⛔ حظر</button>
             <button id="popup-report-btn" class="button bg-orange-500 hover:bg-orange-600">⚠️ تبليغ</button>
+            
+            <!-- Mic Ascent/Descent buttons - controlled by JS -->
             <button id="popup-mic-up-btn" class="button bg-green-500 hover:bg-green-600">🎤 صعود المايك</button>
             <button id="popup-mic-down-btn" class="button bg-red-500 hover:bg-red-600">⬇️ نزول المايك</button>
+            
             <button onclick="closePopup('user-info-popup')" class="button bg-gray-500 hover:bg-gray-600">❌ إغلاق</button>
         </div>
     </div>
@@ -771,7 +1036,7 @@
             sendMessage, sendGift, toggleMusic, toggleMicLock, makeAnnouncement,
             muteAllUsers, pinMessage, copyRoomLink, exitRoom, simulateXPAction,
             toggleDarkMode, assignModerator, reportUser, changeUsername,
-            requestMicAscent, requestMicDescent // New functions for mic stage
+            requestMicAscent, requestMicDescent
         } from '/js/room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
@@ -797,8 +1062,8 @@
             showUserInfoPopup, closePopup, showWelcomePopup, closeWelcomePopup,
             updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
             toggleChatBox, toggleFloatingPanels,
-            populateStageMics, populateGeneralMics, // New functions for mic grids
-            updateUserInfoPopup // New function to populate popup details
+            populateStageMics, populateGeneralMics,
+            updateUserInfoPopup
         } from '/js/room_ui.js';
 
         window.showUserInfoPopup = showUserInfoPopup;
@@ -813,7 +1078,7 @@
         window.toggleFloatingPanels = toggleFloatingPanels;
         window.populateStageMics = populateStageMics;
         window.populateGeneralMics = populateGeneralMics;
-        window.updateUserInfoPopup = updateUserInfoPopup; // Expose new function
+        window.updateUserInfoPopup = updateUserInfoPopup;
 
         // For mic-specific actions from popup (e.g., mute, kick, ban)
         import { toggleUserMute, kickUser, banUser, sendPrivateMessagePopup, sendGiftPopup, increaseReaction } from '/js/room_ui.js';
@@ -827,7 +1092,7 @@
         // Import WebRTC specific functions
         import { toggleLocalMic } from '/js/webrtc.js';
         document.getElementById('toggle-mic-btn-bottom').addEventListener('click', toggleLocalMic);
-        // Removed the old request-mic-btn as it's now handled by the popup or a different logic.
+        document.getElementById('request-mic-btn').addEventListener('click', requestMicAscent); // Request mic ascent from the main button
 
         // Event listeners for bottom controls
         document.getElementById('toggle-chat-btn-bottom').addEventListener('click', toggleChatBox);
@@ -835,9 +1100,12 @@
         document.getElementById('exit-room-btn-bottom').addEventListener('click', exitRoom);
         document.getElementById('send-gift-btn-bottom').addEventListener('click', () => {
             // This button will now show a general gift popup or direct to a gift selection
-            // For now, it could open a simplified gift sending interface or a general gift to room
             showCustomAlert('إرسال هدية عامة أو اختيار مستخدم من المايكات.', 'info');
-            // This might need a more complex popup for selecting recipient or gift type
+        });
+
+        // Event listener for "المتصدرون" button inside "More Options" panel
+        document.getElementById('show-top-users-btn-panel').addEventListener('click', () => {
+            window.location.href = 'top_users.html'; // Navigate to top users page
         });
 
         // Initial setup for the page after all scripts are loaded
