@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirChat - تسجيل الدخول / التسجيل</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Cairo for modern Arabic look -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom Styles (for global utilities or very specific overrides) -->
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        /* Custom styles for the authentication page - focusing on green gradients and modern aesthetics */
+        body {
+            font-family: 'Cairo', sans-serif; /* Modern Arabic font */
+            direction: rtl; /* Right-to-left for Arabic */
+            /* New vibrant green gradient background */
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); /* Emerald to Lime Green */
+            color: #e0e7ff; /* Light, soft text color */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center content vertically */
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: all 0.5s ease-in-out; /* Smooth transition for dark mode */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Dark Mode Styles - inverted green gradient and colors for contrast */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* Darker, subtle gradient */
+            color: #cbd5e0; /* Lighter text */
+        }
+        body.dark-mode .bg-white {
+            background-color: #2d3748; /* Darker card background */
+            color: #cbd5e0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow for dark mode */
+        }
+        body.dark-mode .border-gray-200 {
+            border-color: #4a5568; /* Darker borders */
+        }
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #4a5568; /* Darker input fields */
+            color: #e2e8f0;
+            border-color: #6b7280;
+        }
+        body.dark-mode input::placeholder {
+            color: #a0aec0;
+        }
+        body.dark-mode .text-gray-900 {
+            color: #e2e8f0;
+        }
+        body.dark-mode .text-gray-500 {
+            color: #a0aec0;
+        }
+
+        /* Global Heading Style */
+        h1, h2 {
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800; /* Extra bold */
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Stronger text shadow */
+        }
+
+        /* Enhanced Button Styling with Green Gradients and Glow */
+        .button {
+            padding: 1rem 2rem;
+            border-radius: 9999px; /* Pill shape */
+            font-weight: 700;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            border: none; /* Remove default border */
+        }
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #34d399, #10b981, #059669); /* Default green gradient */
+            z-index: -1;
+            transition: transform 0.3s ease-in-out;
+        }
+        /* Specific button colors - all now green-focused */
+        .button-primary::before {
+             background: linear-gradient(45deg, #34d399, #10b981, #059669); /* Emerald Green */
+        }
+        .button-secondary::before {
+            background: linear-gradient(45deg, #6ee7b7, #38b2ac, #319795); /* Teal/Mint Green */
+        }
+        .button-green::before {
+            background: linear-gradient(45deg, #86efac, #4ade80, #22c55e); /* Brighter Green */
+        }
+        .button-red::before {
+            background: linear-gradient(45deg, #f87171, #ef4444, #dc2626); /* Red remains for danger/logout */
+        }
+
+        .button:hover::before {
+            transform: scale(1.1);
+        }
+        .button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(52, 211, 153, 0.6); /* Green Glow effect */
+        }
+        .button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Auth form specific styling */
+        .auth-card {
+            background-color: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            backdrop-filter: blur(5px); /* Glassmorphism effect */
+            background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Light border */
+            color: #fff; /* White text for contrast */
+        }
+        body.dark-mode .auth-card {
+            background-color: rgba(45, 55, 72, 0.5); /* Darker semi-transparent */
+            border: 1px solid rgba(74, 85, 104, 0.3);
+            color: #cbd5e0;
+        }
+        .auth-card input {
+            background-color: rgba(255, 255, 255, 0.1); /* Lighter transparent input */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+        body.dark-mode .auth-card input {
+            background-color: rgba(74, 85, 104, 0.3);
+            border: 1px solid rgba(107, 114, 128, 0.3);
+            color: #e2e8f0;
+        }
+        .auth-card input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        body.dark-mode .auth-card input::placeholder {
+            color: rgba(203, 213, 224, 0.7);
+        }
+        .auth-card input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5); /* Green focus ring */
+        }
+        .toggle-form-btn {
+            background: none;
+            border: none;
+            color: #e0e7ff; /* Light text for toggle button */
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            transition: color 0.2s ease;
+        }
+        .toggle-form-btn:hover {
+            color: #a7f3d0; /* Lighter green on hover */
+        }
+        body.dark-mode .toggle-form-btn {
+            color: #cbd5e0;
+        }
+        body.dark-mode .toggle-form-btn:hover {
+            color: #86efac;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 1.5rem;
+            }
+            .button {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-emerald-500 to-lime-400 text-gray-100">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-notification"></div>
+
+    <!-- Custom Popup for Alerts/Confirms -->
+    <div id="custom-popup-overlay" class="popup-overlay"></div>
+    <div id="custom-popup" class="popup">
+        <!-- Content will be injected by JavaScript -->
+    </div>
+
+    <div class="auth-card">
+        <h1 class="text-4xl font-extrabold mb-8 text-white text-shadow-lg">AirChat</h1>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-4">
+            <h2 class="text-3xl font-bold mb-6 text-white text-shadow-md">تسجيل الدخول</h2>
+            <input type="email" id="login-email" placeholder="البريد الإلكتروني" required class="text-gray-900">
+            <input type="password" id="login-password" placeholder="كلمة المرور" required class="text-gray-900">
+            <button type="submit" class="button button-primary w-full text-white">
+                <i class="fas fa-sign-in-alt"></i>
+                تسجيل الدخول
+            </button>
+            <button type="button" id="login-google-btn" class="button button-secondary w-full text-white">
+                <i class="fab fa-google"></i>
+                تسجيل الدخول باستخدام جوجل
+            </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="space-y-4 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-white text-shadow-md">التسجيل</h2>
+            <input type="text" id="register-username" placeholder="اسم المستخدم" required class="text-gray-900">
+            <input type="email" id="register-email" placeholder="البريد الإلكتروني" required class="text-gray-900">
+            <input type="password" id="register-password" placeholder="كلمة المرور" required class="text-gray-900">
+            <input type="password" id="register-confirm-password" placeholder="تأكيد كلمة المرور" required class="text-gray-900">
+            <button type="submit" class="button button-green w-full text-white">
+                <i class="fas fa-user-plus"></i>
+                إنشاء حساب
+            </button>
+        </form>
+
+        <button id="toggle-auth-form" class="toggle-form-btn">
+            ليس لديك حساب؟ <span id="toggle-text">سجل الآن</span>
+        </button>
+    </div>
+
+    <!-- Socket.io Client Library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Main Application Logic (Firebase auth, global utils) -->
+    <script type="module" src="./js/main.js"></script>
+    <!-- Auth Page Specific Logic -->
+    <script type="module" src="./js/auth_logic.js"></script>
+
+    <script>
+        // Simple dark mode toggle logic for auth page (can be moved to auth_logic.js)
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-mode');
+            }
+        });
+    </script>
+</body>
+</html>
