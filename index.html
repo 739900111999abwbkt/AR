@@ -4,67 +4,334 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AirChat - الرئيسية</title>
-    <!-- Tailwind CSS CDN for basic styling -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Cairo for modern Arabic look -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom Styles (for global utilities or very specific overrides) -->
     <link rel="stylesheet" href="./css/style.css">
     <style>
-        /* Custom styles for the landing page */
+        /* Custom styles for the lobby page - focusing on gradients and modern aesthetics */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Cairo', sans-serif; /* Modern Arabic font */
             direction: rtl; /* Right-to-left for Arabic */
-            background-color: #f0f2f5; /* Light gray background */
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); /* Deep purple to vibrant blue gradient */
+            color: #e0e7ff; /* Light, soft text color */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Full viewport height */
-            margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            text-align: center;
+            transition: all 0.5s ease-in-out; /* Smooth transition for dark mode */
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
-        h1 {
-            font-size: 3.5rem; /* Larger heading */
-            font-weight: 700; /* Bold font */
-            color: #4f46e5; /* Primary purple color */
-            margin-bottom: 2.5rem; /* Space below heading */
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle text shadow */
+
+        /* Dark Mode Styles - inverted gradient and colors for contrast */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%); /* Darker, subtle gradient */
+            color: #cbd5e0; /* Lighter text */
         }
-        .button-container {
-            display: flex;
-            gap: 1.5rem; /* Space between buttons */
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        body.dark-mode .bg-white {
+            background-color: #2d3748; /* Darker card background */
+            color: #cbd5e0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow for dark mode */
+        }
+        body.dark-mode .border-gray-200 {
+            border-color: #4a5568; /* Darker borders */
+        }
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #4a5568; /* Darker input fields */
+            color: #e2e8f0;
+            border-color: #6b7280;
+        }
+        body.dark-mode input::placeholder {
+            color: #a0aec0;
+        }
+        body.dark-mode .text-gray-900 {
+            color: #e2e8f0;
+        }
+        body.dark-mode .text-gray-500 {
+            color: #a0aec0;
+        }
+
+        /* Global Heading Style */
+        h1, h2 {
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800; /* Extra bold */
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Stronger text shadow */
+        }
+
+        /* Enhanced Button Styling with Gradients and Glow */
+        .button {
+            padding: 1rem 2rem;
+            border-radius: 9999px; /* Pill shape */
+            font-weight: 700;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            border: none; /* Remove default border */
         }
-        .button-link {
-            display: inline-block;
-            background-color: #4f46e5; /* Primary purple color */
-            color: white;
-            padding: 1.25rem 2.5rem; /* Larger padding for buttons */
-            border-radius: 1rem; /* More rounded corners */
-            font-size: 1.3rem; /* Larger font size */
-            font-weight: 600; /* Semi-bold font */
-            text-decoration: none; /* Remove underline */
-            transition: all 0.3s ease; /* Smooth transitions for hover effects */
-            box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3); /* Soft shadow */
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #a78bfa, #8b5cf6, #6d28d9); /* Purple gradient for primary */
+            z-index: -1;
+            transition: transform 0.3s ease-in-out;
         }
-        .button-link:hover {
-            background-color: #4338ca; /* Darker purple on hover */
-            transform: translateY(-3px) scale(1.02); /* Slight lift and scale effect */
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4); /* Enhanced shadow on hover */
+        .button-primary::before {
+             background: linear-gradient(45deg, #a78bfa, #8b5cf6, #6d28d9); /* Purple gradient */
         }
-        .button-link:active {
-            transform: translateY(0); /* Reset on click */
-            box-shadow: 0 3px 8px rgba(79, 70, 229, 0.2); /* Smaller shadow on click */
+        .button-secondary::before {
+            background: linear-gradient(45deg, #6366f1, #3b82f6, #2563eb); /* Blue gradient */
+        }
+        .button-green::before {
+            background: linear-gradient(45deg, #34d399, #10b981, #059669); /* Green gradient */
+        }
+        .button-red::before {
+            background: linear-gradient(45deg, #f87171, #ef4444, #dc2626); /* Red gradient */
+        }
+
+        .button:hover::before {
+            transform: scale(1.1);
+        }
+        .button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(109, 40, 217, 0.6); /* Glow effect */
+        }
+        .button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Room card styling with enhanced visuals */
+        .room-card {
+            background-color: #fff;
+            border-radius: 1.5rem; /* More rounded */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Deeper shadow */
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .room-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6); /* Subtle gradient overlay */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            border-radius: 1.5rem;
+        }
+        .room-card:hover::before {
+            opacity: 0.1; /* Slight gradient on hover */
+        }
+        .room-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25), 0 0 30px rgba(109, 40, 217, 0.4); /* Enhanced glow */
+        }
+        .room-card img {
+            width: 100%;
+            height: 150px; /* Slightly taller images */
+            object-fit: cover;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+        }
+        .room-card-content {
+            padding: 1.5rem;
+            width: 100%;
+            background-color: inherit; /* Inherit background for dark mode transition */
+        }
+        .room-card h3 {
+            font-size: 1.5rem; /* Larger room name */
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #333; /* Default text color */
+        }
+        body.dark-mode .room-card h3 {
+            color: #e2e8f0; /* Dark mode text color */
+        }
+        .room-card p {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        body.dark-mode .room-card p {
+            color: #a0aec0;
+        }
+        .room-card .users-count {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 600;
+        }
+        body.dark-mode .room-card .users-count {
+            color: #cbd5e0;
+        }
+        .room-card .users-count i {
+            color: #6d28d9; /* Purple icon */
+        }
+        body.dark-mode .room-card .users-count i {
+            color: #a78bfa; /* Lighter purple in dark mode */
+        }
+
+        /* Pulse animation for loading states */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .button {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+            .room-card img {
+                height: 100px;
+            }
+            .room-card h3 {
+                font-size: 1.2rem;
+            }
+            .room-card p {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
-<body>
-    <h1>مرحبًا بك في AirChat</h1>
-    <div class="button-container">
-        <a href="login.html" class="button-link">تسجيل الدخول</a>
-        <a href="register.html" class="button-link">التسجيل</a>
-        <a href="rooms.html" class="button-link">استعراض الغرف</a>
+<body class="bg-gradient-to-br from-purple-800 to-blue-600 text-gray-100">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-notification"></div>
+
+    <!-- Custom Popup for Alerts/Confirms -->
+    <div id="custom-popup-overlay" class="popup-overlay"></div>
+    <div id="custom-popup" class="popup">
+        <!-- Content will be injected by JavaScript -->
     </div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full max-w-5xl mx-auto p-4 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-gray-800 rounded-3xl shadow-2xl mt-8 mb-8 backdrop-blur-sm bg-opacity-20 dark:bg-opacity-20 border border-white border-opacity-20 dark:border-gray-700 dark:border-opacity-20">
+        <div class="flex items-center gap-3">
+            <img src="https://placehold.co/60x60/a78bfa/ffffff?text=AC" alt="AirChat Logo" class="w-16 h-16 rounded-full shadow-lg border-2 border-purple-500">
+            <h1 class="text-4xl font-extrabold text-white dark:text-gray-100 text-shadow-lg">AirChat</h1>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+            <div class="flex items-center gap-3 bg-white dark:bg-gray-700 p-2 rounded-full shadow-inner">
+                <img id="user-avatar" src="https://placehold.co/40x40/cccccc/333333?text=U" alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-purple-500">
+                <span id="user-username" class="font-semibold text-lg text-gray-900 dark:text-gray-100">تحميل...</span>
+            </div>
+            <button id="toggle-dark-mode-btn" class="button button-secondary text-white">
+                <i class="fas fa-moon"></i>
+                <span class="hidden sm:inline">الوضع الليلي</span>
+            </button>
+            <button id="logout-btn" class="button button-red text-white">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="hidden sm:inline">تسجيل الخروج</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-5xl mx-auto p-4">
+
+        <!-- Create Room Section -->
+        <section class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl mb-12 backdrop-blur-sm bg-opacity-20 dark:bg-opacity-20 border border-white border-opacity-20 dark:border-gray-700 dark:border-opacity-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-white dark:text-gray-100 text-shadow-md">ابدأ غرفة صوتية جديدة</h2>
+            <div class="flex flex-col md:flex-row gap-6 items-center justify-center">
+                <input type="text" id="new-room-name" placeholder="اسم الغرفة" class="flex-grow p-4 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-4 focus:ring-purple-400 focus:ring-opacity-70 text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-lg shadow-inner">
+                <button id="create-room-btn" class="button button-primary w-full md:w-auto text-white">
+                    <i class="fas fa-plus-circle"></i>
+                    إنشاء الغرفة
+                </button>
+            </div>
+        </section>
+
+        <!-- Available Rooms Section -->
+        <section class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl backdrop-blur-sm bg-opacity-20 dark:bg-opacity-20 border border-white border-opacity-20 dark:border-gray-700 dark:border-opacity-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-white dark:text-gray-100 text-shadow-md">الغرف المتاحة حاليًا</h2>
+            <div id="rooms-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <!-- Room cards will be dynamically loaded here by JavaScript -->
+                <div class="room-card animate-pulse">
+                    <div class="w-full h-32 bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
+                    <div class="room-card-content">
+                        <div class="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div class="h-8 bg-gray-300 dark:bg-gray-700 rounded-lg w-full mt-4"></div>
+                    </div>
+                </div>
+                <div class="room-card animate-pulse">
+                    <div class="w-full h-32 bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
+                    <div class="room-card-content">
+                        <div class="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div class="h-8 bg-gray-300 dark:bg-gray-700 rounded-lg w-full mt-4"></div>
+                    </div>
+                </div>
+                <div class="room-card animate-pulse">
+                    <div class="w-full h-32 bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
+                    <div class="room-card-content">
+                        <div class="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                        <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+                        <div class="h-8 bg-gray-300 dark:bg-gray-700 rounded-lg w-full mt-4"></div>
+                    </div>
+                </div>
+            </div>
+            <p id="no-rooms-message" class="text-center text-gray-300 dark:text-gray-500 mt-8 hidden">لا توجد غرف متاحة حاليًا. كن أول من ينشئ واحدة!</p>
+        </section>
+
+    </main>
+
+    <!-- Socket.io Client Library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Main Application Logic -->
+    <script type="module" src="./js/main.js"></script>
+    <!-- Lobby Specific Logic -->
+    <script type="module" src="./js/index_logic.js"></script>
+
+    <script>
+        // Simple dark mode toggle logic (can be moved to index_logic.js for better organization)
+        document.getElementById('toggle-dark-mode-btn').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        // Apply theme on load
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 </body>
 </html>
