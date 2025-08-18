@@ -38,6 +38,9 @@ export let roomState = {
 };
 
 // --- Initial Socket.io Event Listeners (from server to client) ---
+// NOTE: All socket listeners are wrapped in this conditional block.
+// This is to prevent errors when the site is deployed statically without a server.
+// See README.md for more details on running the full-featured local version.
 if (socket) {
     // Event: Room state update (full sync)
     socket.on('roomStateUpdate', (newRoomState) => {
