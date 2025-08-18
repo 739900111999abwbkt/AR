@@ -11,6 +11,9 @@
     <!-- Link to global styles (custom styles will be here eventually) -->
     <link rel="stylesheet" href="style.css">
     <style>
+        * {
+            box-sizing: border-box;
+        }
         /* Base styles for the entire page */
         body {
             background-color: #8B0000; /* Deep Red for a bold, attractive look */
@@ -739,27 +742,18 @@
 
         /* New breakpoint for tablets */
         @media (max-width: 1024px) {
-            #chat-box-container, #gift-panel-container {
-                width: 320px; /* Reduce width on tablets */
-                max-height: 400px;
-            }
-
-            #floating-panels-container {
-                max-height: calc(100vh - 160px);
-                padding: 15px;
-            }
-
             #stage-mics-grid {
                 grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-                gap: 2rem;
+                gap: 1.5rem;
             }
             .stage-mic-slot {
                 width: 120px;
                 height: 120px;
             }
-            .stage-mic-slot img {
-                width: 80px;
-                height: 80px;
+             #chat-box-container, #gift-panel-container, #floating-panels-container {
+                width: 340px;
+                right: 15px;
+                bottom: 75px;
             }
         }
 
@@ -941,6 +935,42 @@
                 bottom: 20px;
                 padding: 10px 20px;
                 font-size: 0.9rem;
+            }
+        }
+
+        /* For very small mobile devices */
+        @media (max-width: 480px) {
+            #top-bar {
+                padding: 8px 10px;
+            }
+            #top-bar .user-info {
+                gap: 8px;
+            }
+            #top-bar .user-info img {
+                width: 30px;
+                height: 30px;
+            }
+            #top-bar .global-controls button {
+                padding: 5px 10px;
+                font-size: 0.7rem;
+            }
+             #stage-mics-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+            .stage-mic-slot {
+                width: 90px;
+                height: 90px;
+            }
+            .stage-mic-slot img {
+                width: 60px;
+                height: 60px;
+            }
+            .stage-mic-slot .mic-name {
+                font-size: 0.8rem;
+            }
+            #chat-box-container, #gift-panel-container, #floating-panels-container {
+                max-height: 250px;
             }
         }
 
