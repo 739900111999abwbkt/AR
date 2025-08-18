@@ -583,3 +583,62 @@ body.dark-mode .rooms-list-container li span {
     color: #bbb;
 }
 
+/* Universal Box Sizing */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Responsive Adjustments for a Native App-Like Feel */
+@media (max-width: 768px) {
+    html {
+        font-size: 16px; /* Set a consistent root font size */
+    }
+    body {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Adjust typography in room.html */
+    .stage-mic-slot .mic-name, .general-mic-circle .mic-name, #chat-messages {
+        font-size: 0.9rem; /* ~14.4px */
+    }
+    #top-bar {
+        font-size: 0.95rem;
+    }
+
+    /* Ensure touch targets are large enough (min 48x48px) in room.html */
+    .stage-mic-slot, .general-mic-circle, #bottom-controls .control-button, #request-mic-btn {
+        min-height: 48px;
+    }
+    .stage-mic-slot {
+        width: 100px; height: 100px;
+    }
+     .general-mic-circle {
+        width: 65px; height: 65px;
+    }
+    #bottom-controls .control-button {
+        padding-top: 8px; padding-bottom: 8px;
+    }
+
+    /* Adjust layout and spacing in room.html */
+    #stage-mics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 1rem;
+        margin-top: 70px;
+    }
+    #general-mics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 0.8rem;
+        margin-bottom: 70px;
+    }
+     #chat-box-container, #gift-panel-container, #floating-panels-container {
+        width: 95%;
+        max-width: 400px;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 70px;
+        max-height: 50vh; /* Use viewport height */
+    }
+    #user-info-popup {
+        width: 90%;
+    }
+}
