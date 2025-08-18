@@ -28,8 +28,9 @@ console.log('Firebase Client SDK initialized.');
 
 // --- Socket.io Connection ---
 // تهيئة اتصال Socket.io (نفترض أن مكتبة عميل Socket.io محملة في HTML)
-export const socket = io();
-console.log('Socket.io client connected.');
+// export const socket = io(); // Disabled for static deployment
+// console.log('Socket.io client connection disabled for static deployment.');
+export const socket = null; // Set socket to null so other parts of the app don't break
 
 // --- Current User State ---
 // هذا الكائن سيحتوي على بيانات المستخدم المصادق عليه
@@ -110,8 +111,8 @@ onAuthStateChanged(auth, async (user) => {
             isAuthReady = true; // وضع علامة على أن المصادقة جاهزة
 
             // إعادة التوجيه إلى index.html إذا لم يكن المستخدم هناك بالفعل وليس في auth.html
-            if (window.location.pathname === '/' || window.location.pathname === '/auth.html') {
-                window.location.href = '/index.html';
+            if (window.location.pathname === '/' || window.location.pathname.endsWith('auth.html')) {
+                window.location.href = 'index.html';
             }
 
         } catch (error) {
@@ -138,8 +139,8 @@ onAuthStateChanged(auth, async (user) => {
         isAuthReady = true; // وضع علامة على أن المصادقة جاهزة
 
         // إعادة التوجيه إلى auth.html إذا لم يكن المستخدم على هذه الصفحة بالفعل
-        if (window.location.pathname !== '/auth.html') {
-            window.location.href = '/auth.html';
+        if (!window.location.pathname.endsWith('auth.html')) {
+            window.location.href = 'auth.html';
         }
     }
 });

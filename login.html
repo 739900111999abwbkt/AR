@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN for easy styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Link to your global styles -->
-    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="style.css" />
     <style>
         /* Specific styles for the login container, complementing style.css */
         .login-container {
@@ -55,7 +55,7 @@
     <script type="module">
         // Import custom alert utility
         // Changed path to absolute from root to ensure correct module resolution
-        import { showCustomAlert } from '/js/utils.js'; 
+        import { showCustomAlert } from './js/utils.js';
 
         document.getElementById("loginForm").addEventListener("submit", async function (e) {
             e.preventDefault();
