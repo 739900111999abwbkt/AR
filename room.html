@@ -9,7 +9,7 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Link to global styles (custom styles will be here eventually) -->
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         /* Base styles for the entire page */
         body {
@@ -736,6 +736,32 @@
         #toast.info { background-color: rgba(0, 100, 200, 0.8); }
         #toast.warning { background-color: rgba(255, 165, 0, 0.8); }
 
+
+        /* New breakpoint for tablets */
+        @media (max-width: 1024px) {
+            #chat-box-container, #gift-panel-container {
+                width: 320px; /* Reduce width on tablets */
+                max-height: 400px;
+            }
+
+            #floating-panels-container {
+                max-height: calc(100vh - 160px);
+                padding: 15px;
+            }
+
+            #stage-mics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+                gap: 2rem;
+            }
+            .stage-mic-slot {
+                width: 120px;
+                height: 120px;
+            }
+            .stage-mic-slot img {
+                width: 80px;
+                height: 80px;
+            }
+        }
 
         /* Responsive adjustments for mobile */
         @media (max-width: 768px) {
