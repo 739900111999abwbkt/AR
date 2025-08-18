@@ -27,9 +27,10 @@ export const auth = getAuth(firebaseApp);
 console.log('Firebase Client SDK initialized.');
 
 // --- Socket.io Connection ---
-// تهيئة اتصال Socket.io (نفترض أن مكتبة عميل Socket.io محملة في HTML)
-// export const socket = io(); // Disabled for static deployment
-// console.log('Socket.io client connection disabled for static deployment.');
+// NOTE: The socket connection is disabled to allow the project to run as a static site
+// on platforms like GitHub Pages. For full functionality, you must run the local server.
+// See README.md for more details.
+// export const socket = io();
 export const socket = null; // Set socket to null so other parts of the app don't break
 
 // --- Current User State ---
