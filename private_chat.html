@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Link to global styles -->
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         /* Specific styles for the private chat page */
         body {
@@ -156,8 +156,8 @@
     </div>
 
     <script type="module">
-        import { socket, currentUser, showCustomAlert } from '/js/main.js';
-        import { showGiftAnimation } from '/js/room_ui.js'; // Re-use gift animation
+        import { socket, currentUser, showCustomAlert } from './js/main.js';
+        import { showGiftAnimation } from './js/room_ui.js'; // Re-use gift animation
 
         const recipientId = new URLSearchParams(window.location.search).get('id');
         const recipientUsernameDisplay = document.getElementById('recipient-username');

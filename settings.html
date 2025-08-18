@@ -7,7 +7,7 @@
     <!-- Tailwind CSS CDN for easy styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Link to your global styles -->
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="style.css">
     <style>
         /* Specific styles for the settings container, complementing style.css */
         .settings-container {
@@ -89,7 +89,7 @@
     </div>
 
     <script type="module">
-        import { showCustomAlert } from '/js/utils.js'; // Import custom alert utility
+        import { showCustomAlert } from './js/utils.js'; // Import custom alert utility
 
         // Function to save settings to localStorage and apply changes
         function saveSettings() {

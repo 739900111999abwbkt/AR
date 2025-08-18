@@ -14,7 +14,7 @@
         /* Base styles for the entire page */
         body {
             background-color: #8B0000; /* Deep Red for a bold, attractive look */
-            background-image: url('/assets/images/room-bg-fire.jpg'); /* Dynamic background: fire, smoke, or elegant theme */
+            background-image: url('assets/images/room-bg-fire.jpg'); /* Dynamic background: fire, smoke, or elegant theme */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -886,6 +886,10 @@
     <div id="chat-box-container">
         <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">💬 الدردشة العامة</h3>
         <div id="chat-messages">
+            <div id="chat-disabled-message" class="hidden p-4 text-center text-yellow-600 bg-yellow-100 rounded-lg">
+                <p class="font-bold">ميزة الدردشة معطلة في هذه النسخة.</p>
+                <p class="text-sm">شغّل المشروع محليًا لتفعيل الدردشة.</p>
+            </div>
             <!-- Chat messages will be dynamically added here -->
             <div class="chat-message text-sm p-2 rounded-lg bg-gray-100 dark:bg-gray-700 mb-2">
                 <span class="font-bold text-blue-600 dark:text-blue-400">مستخدم تجريبي:</span> مرحباً بالجميع!
@@ -1064,15 +1068,25 @@
     <!-- Audio Elements -->
     <audio id="bg-music" loop></audio>
     <audio id="mic-audio" muted></audio>
-    <audio id="welcomeAudio" src="/assets/sounds/welcome.mp3"></audio>
-    <audio id="newMessageSound" src="/assets/sounds/new-message.mp3"></audio>
-    <audio id="giftSound" src="/assets/sounds/gift-sound.mp3"></audio>
+    <audio id="welcomeAudio" src="./assets/sounds/welcome.mp3"></audio>
+    <audio id="newMessageSound" src="./assets/sounds/new-message.mp3"></audio>
+    <audio id="giftSound" src="./assets/sounds/gift-sound.mp3"></audio>
 
     <!-- JavaScript Modules -->
-    <script type="module" src="/js/main.js"></script>
-    <script type="module" src="/js/room_ui.js"></script>
-    <script type="module" src="/js/room_logic.js"></script>
-    <script type="module" src="/js/webrtc.js"></script>
+    <script type="module" src="./js/main.js"></script>
+    <script type="module" src="./js/room_ui.js"></script>
+    <script type="module" src="./js/room_logic.js"></script>
+    <script type="module" src="./js/webrtc.js"></script>
+
+    <script>
+        // Show notification if running on a static host like GitHub Pages
+        if (window.location.host.includes('github.io')) {
+            const chatDisabledMessage = document.getElementById('chat-disabled-message');
+            if (chatDisabledMessage) {
+                chatDisabledMessage.classList.remove('hidden');
+            }
+        }
+    </script>
 
     <script type="module">
         // Import functions from other modules to make them accessible globally if needed,
@@ -1084,7 +1098,7 @@
             requestMicAscent, requestMicDescent, // Mic stage control
             kickUser, banUser, toggleUserMute, // Moderation actions
             transferUserMic, preventMicAscent // New moderation actions
-        } from '/js/room_logic.js';
+        } from './js/room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
         window.sendMessage = sendMessage;
@@ -1118,7 +1132,7 @@
             populateStageMics, populateGeneralMics,
             updateUserInfoPopup, showCustomAlert, updateOnlineCount, updateStayTimer,
             showRoomRulesPopup, showExitConfirmPopup // New popups
-        } from '/js/room_ui.js';
+        } from './js/room_ui.js';
 
         window.showUserInfoPopup = showUserInfoPopup;
         window.closePopup = closePopup;
@@ -1141,13 +1155,13 @@
         window.showExitConfirmPopup = showExitConfirmPopup;
 
         // For mic-specific actions from popup (e.g., mute, kick, ban)
-        import { sendPrivateMessagePopup, sendGiftPopup, increaseReaction } from '/js/room_ui.js';
+        import { sendPrivateMessagePopup, sendGiftPopup, increaseReaction } from './js/room_ui.js';
         window.sendPrivateMessagePopup = sendPrivateMessagePopup;
         window.sendGiftPopup = sendGiftPopup;
         window.increaseReaction = increaseReaction;
 
         // Import WebRTC specific functions
-        import { toggleLocalMic } from '/js/webrtc.js';
+        import { toggleLocalMic } from './js/webrtc.js';
         document.getElementById('toggle-mic-btn-bottom').addEventListener('click', toggleLocalMic);
         document.getElementById('request-mic-btn').addEventListener('click', requestMicAscent); // Request mic ascent from the main button
 

@@ -991,7 +991,7 @@
     <header class="glass-panel">
         <div class="logo">AirChat</div>
         <nav class="flex items-center gap-6">
-            <a href="/index.html" class="btn-primary">
+            <a href="index.html" class="btn-primary">
                 <i class="fas fa-home"></i>
                 العودة للوبي
             </a>
@@ -1089,6 +1089,10 @@
             </div>
 
             <div id="chat-messages-display" class="flex flex-col">
+                <div id="chat-disabled-message" class="hidden p-4 text-center text-yellow-400 bg-yellow-900/50 rounded-lg">
+                    <p class="font-bold">ميزة الدردشة معطلة في هذه النسخة التجريبية.</p>
+                    <p class="text-sm">لتجربة الدردشة الكاملة، يرجى تشغيل المشروع على خادم محلي.</p>
+                </div>
                 <!-- Chat messages will be dynamically loaded here -->
                 <div class="chat-message-item received">
                     <img src="https://placehold.co/45x45/00000a/8b5cf6?text=P1" alt="User Avatar" class="user-avatar">
@@ -1156,5 +1160,15 @@
     <script type="module" src="./js/main.js"></script>
     <!-- Private Chat Specific Logic -->
     <script type="module" src="./js/private_chat_logic.js"></script>
+
+    <script>
+        // Show notification if running on a static host like GitHub Pages
+        if (window.location.host.includes('github.io')) {
+            const chatDisabledMessage = document.getElementById('chat-disabled-message');
+            if (chatDisabledMessage) {
+                chatDisabledMessage.classList.remove('hidden');
+            }
+        }
+    </script>
 </body>
 </html>

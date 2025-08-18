@@ -38,10 +38,10 @@ export let roomState = {
 };
 
 // --- Initial Socket.io Event Listeners (from server to client) ---
-
-// Event: Room state update (full sync)
-socket.on('roomStateUpdate', (newRoomState) => {
-    console.log('Received room state update:', newRoomState);
+if (socket) {
+    // Event: Room state update (full sync)
+    socket.on('roomStateUpdate', (newRoomState) => {
+        console.log('Received room state update:', newRoomState);
     Object.assign(roomState, newRoomState); // Update local room state
 
     // Update UI based on new state
@@ -270,6 +270,7 @@ socket.on('topUsersUpdate', (topUsers) => {
 socket.on('honorBoardUpdate', (honorBoard) => {
     updateHonorBoard(honorBoard);
 });
+}
 
 
 // --- Functions to Send Actions to Server (socket.emit) ---
@@ -283,7 +284,9 @@ export function sendMessage(messageText) {
         showCustomAlert('لا يمكن إرسال رسالة فارغة.', 'warning');
         return;
     }
-    socket.emit('sendChatMessage', { text: messageText, roomId: roomState.id });
+    if (socket) {
+        socket.emit('sendChatMessage', { text: messageText, roomId: roomState.id });
+    }
     document.getElementById('chat-input').value = ''; // Clear input
 }
 
@@ -297,7 +300,9 @@ export function sendPrivateMessage(recipientId, messageText) {
         showCustomAlert('لا يمكن إرسال رسالة فارغة.', 'warning');
         return;
     }
-    socket.emit('sendPrivateMessage', { recipientId, text: messageText, roomId: roomState.id });
+    if (socket) {
+        socket.emit('sendPrivateMessage', { recipientId, text: messageText, roomId: roomState.id });
+    }
     // UI update for private message will be handled by socket.on('privateMessage')
 }
 
@@ -327,7 +332,9 @@ export async function requestMicAscent(userId = currentUser.id) {
 
     const confirmed = await showCustomConfirm('هل أنت متأكد من أنك تريد صعود المايك؟');
     if (confirmed) {
-        socket.emit('requestMicAscent', { userId: currentUser.id, roomId: roomState.id });
+        if (socket) {
+            socket.emit('requestMicAscent', { userId: currentUser.id, roomId: roomState.id });
+        }
         showCustomAlert('تم إرسال طلب صعود المايك.', 'info');
     }
 }
@@ -348,7 +355,9 @@ export async function requestMicDescent(userId = currentUser.id) {
 
     const confirmed = await showCustomConfirm('هل أنت متأكد من أنك تريد النزول من المايك؟');
     if (confirmed) {
-        socket.emit('requestMicDescent', { userId: currentUser.id, roomId: roomState.id });
+        if (socket) {
+            socket.emit('requestMicDescent', { userId: currentUser.id, roomId: roomState.id });
+        }
         showCustomAlert('تم إرسال طلب نزول المايك.', 'info');
     }
 }
@@ -365,7 +374,9 @@ export async function toggleMicLock(forceLock = !roomState.micLock) {
     const action = forceLock ? 'قفل' : 'فتح';
     const confirmed = await showCustomConfirm(`هل أنت متأكد من أنك تريد ${action} المايكات؟`);
     if (confirmed) {
-        socket.emit('toggleMicLock', { roomId: roomState.id, lock: forceLock });
+        if (socket) {
+            socket.emit('toggleMicLock', { roomId: roomState.id, lock: forceLock });
+        }
         showCustomAlert(`تم طلب ${action} المايكات.`, 'info');
     }
 }
@@ -391,7 +402,9 @@ export async function transferUserMic(userId, newMicIndex) {
     }
     const confirmed = await showCustomConfirm(`هل أنت متأكد من نقل ${user.username} إلى الكرسي رقم ${newMicIndex}؟`);
     if (confirmed) {
-        socket.emit('transferUserMic', { targetUserId: userId, newMicIndex, roomId: roomState.id });
+        if (socket) {
+            socket.emit('transferUserMic', { targetUserId: userId, newMicIndex, roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب نقل ${user.username} إلى الكرسي رقم ${newMicIndex}.`, 'info');
     }
 }
@@ -414,7 +427,9 @@ export async function preventMicAscent(userId, prevent) {
     const action = prevent ? 'منع' : 'السماح لـ';
     const confirmed = await showCustomConfirm(`هل أنت متأكد من ${action} ${user.username} من صعود المايك؟`);
     if (confirmed) {
-        socket.emit('preventMicAscent', { targetUserId: userId, prevent, roomId: roomState.id });
+        if (socket) {
+            socket.emit('preventMicAscent', { targetUserId: userId, prevent, roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب ${action} ${user.username} من صعود المايك.`, 'info');
     }
 }
@@ -439,7 +454,9 @@ export async function sendGift(giftId, recipientId) {
     const recipientName = recipientId === 'room' ? 'الغرفة' : roomState.users[recipientId]?.username || 'مجهول';
     const confirmed = await showCustomConfirm(`هل أنت متأكد من إرسال ${gift.name} إلى ${recipientName} مقابل ${gift.price} عملة؟`);
     if (confirmed) {
-        socket.emit('sendGift', { giftId, recipientId, roomId: roomState.id });
+        if (socket) {
+            socket.emit('sendGift', { giftId, recipientId, roomId: roomState.id });
+        }
         showCustomAlert(`تم إرسال ${gift.name} إلى ${recipientName}.`, 'success');
         showGiftAnimation(); // Trigger UI animation
         // Deduct coins locally (optimistic update)
@@ -465,7 +482,9 @@ export async function toggleUserMute(userId) {
     const action = user.isMuted ? 'unmute' : 'mute';
     const confirmed = await showCustomConfirm(`هل أنت متأكد من ${action === 'mute' ? 'كتم' : 'إلغاء كتم'} ${user.username}؟`);
     if (confirmed) {
-        socket.emit('moderateUser', { targetUserId: userId, action, roomId: roomState.id });
+        if (socket) {
+            socket.emit('moderateUser', { targetUserId: userId, action, roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب ${action === 'mute' ? 'كتم' : 'إلغاء كتم'} ${user.username}.`, 'info');
     }
 }
@@ -486,7 +505,9 @@ export async function kickUser(userId) {
     }
     const confirmed = await showCustomConfirm(`هل أنت متأكد من طرد ${user.username} من الغرفة؟`);
     if (confirmed) {
-        socket.emit('moderateUser', { targetUserId: userId, action: 'kick', roomId: roomState.id });
+        if (socket) {
+            socket.emit('moderateUser', { targetUserId: userId, action: 'kick', roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب طرد ${user.username}.`, 'warning');
     }
 }
@@ -507,7 +528,9 @@ export async function banUser(userId) {
     }
     const confirmed = await showCustomConfirm(`هل أنت متأكد من حظر ${user.username} من التطبيق نهائيًا؟`);
     if (confirmed) {
-        socket.emit('moderateUser', { targetUserId: userId, action: 'ban', roomId: roomState.id });
+        if (socket) {
+            socket.emit('moderateUser', { targetUserId: userId, action: 'ban', roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب حظر ${user.username}.`, 'error');
     }
 }
@@ -532,7 +555,9 @@ export async function assignModerator(userId) {
     }
     const confirmed = await showCustomConfirm(`هل أنت متأكد من تعيين ${user.username} كمشرف؟`);
     if (confirmed) {
-        socket.emit('moderateUser', { targetUserId: userId, action: 'assignModerator', roomId: roomState.id });
+        if (socket) {
+            socket.emit('moderateUser', { targetUserId: userId, action: 'assignModerator', roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب تعيين ${user.username} كمشرف.`, 'success');
     }
 }
@@ -557,7 +582,9 @@ export async function removeModerator(userId) {
     }
     const confirmed = await showCustomConfirm(`هل أنت متأكد من إزالة ${user.username} من المشرفين؟`);
     if (confirmed) {
-        socket.emit('moderateUser', { targetUserId: userId, action: 'removeModerator', roomId: roomState.id });
+        if (socket) {
+            socket.emit('moderateUser', { targetUserId: userId, action: 'removeModerator', roomId: roomState.id });
+        }
         showCustomAlert(`تم طلب إزالة ${user.username} من المشرفين.`, 'success');
     }
 }
@@ -572,7 +599,9 @@ export async function muteAllUsers() {
     }
     const confirmed = await showCustomConfirm('هل أنت متأكد من كتم جميع المستخدمين في الغرفة؟');
     if (confirmed) {
-        socket.emit('muteAllUsers', { roomId: roomState.id });
+        if (socket) {
+            socket.emit('muteAllUsers', { roomId: roomState.id });
+        }
         showCustomAlert('تم طلب كتم جميع المستخدمين.', 'info');
     }
 }
@@ -588,7 +617,9 @@ export async function makeAnnouncement() {
     }
     const announcement = await showCustomConfirm('أدخل نص الإعلان:', 'input'); // Using custom confirm for input
     if (announcement) {
-        socket.emit('makeAnnouncement', { text: announcement, roomId: roomState.id });
+        if (socket) {
+            socket.emit('makeAnnouncement', { text: announcement, roomId: roomState.id });
+        }
         showCustomAlert('تم إرسال الإعلان.', 'success');
     }
 }
@@ -603,7 +634,9 @@ export async function pinMessage() {
         return;
     }
     const message = await showCustomConfirm('أدخل الرسالة لتثبيتها (اتركها فارغة لإلغاء التثبيت):', 'input');
-    socket.emit('pinMessage', { message, roomId: roomState.id });
+    if (socket) {
+        socket.emit('pinMessage', { message, roomId: roomState.id });
+    }
     showCustomAlert('تم طلب تثبيت الرسالة.', 'info');
 }
 
@@ -620,7 +653,9 @@ export async function reportUser(userId) {
     }
     const reason = await showCustomConfirm(`أدخل سبب الإبلاغ عن ${user.username}:`, 'input');
     if (reason) {
-        socket.emit('reportUser', { targetUserId: userId, reason, reporterId: currentUser.id, roomId: roomState.id });
+        if (socket) {
+            socket.emit('reportUser', { targetUserId: userId, reason, reporterId: currentUser.id, roomId: roomState.id });
+        }
         showCustomAlert('تم إرسال بلاغك، شكراً لك.', 'success');
     }
 }
@@ -642,9 +677,11 @@ export function copyRoomLink() {
  * Handles user exiting the room.
  */
 export function exitRoom() {
-    socket.emit('exitRoom', { roomId: roomState.id });
+    if (socket) {
+        socket.emit('exitRoom', { roomId: roomState.id });
+    }
     // Redirect to home or lobby page after exiting
-    window.location.href = '/'; // Example redirect
+    window.location.href = 'index.html'; // Example redirect
 }
 
 /**

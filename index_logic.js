@@ -180,7 +180,7 @@ async function handleCreateRoom() {
         console.log(`New room created with ID: ${newRoomId}`);
 
         // Redirect to the new room
-        window.location.href = `/room?id=${newRoomId}`;
+        window.location.href = `room.html?id=${newRoomId}`;
 
     } catch (error) {
         console.error('Error creating room:', error);
@@ -200,7 +200,7 @@ function handleJoinRoom(roomId) {
         return;
     }
     showCustomAlert(`جارٍ الانضمام إلى الغرفة ${roomId}...`, 'info');
-    window.location.href = `/room?id=${roomId}`;
+    window.location.href = `room.html?id=${roomId}`;
 }
 
 /**
@@ -225,36 +225,37 @@ async function handleLogout() {
 // --- Socket.io Listeners (for real-time updates to lobby) ---
 // Note: These listeners are for updates to the lobby itself, not specific room events.
 // For example, if a new room is created by another user, the lobby should update.
-
-socket.on('roomCreated', (roomData) => {
-    console.log('New room created event received:', roomData);
-    // Add the new room to the list if it's not already there
-    if (!document.querySelector(`[data-room-id="${roomData.id}"]`)) {
-        renderRoomCard(roomData.id, roomData);
-        noRoomsMessage.classList.add('hidden'); // Hide "no rooms" message if a room appears
-    }
-});
-
-socket.on('roomDeleted', (roomId) => {
-    console.log('Room deleted event received:', roomId);
-    const roomCardToRemove = document.querySelector(`[data-room-id="${roomId}"]`);
-    if (roomCardToRemove) {
-        roomCardToRemove.remove();
-        // If no rooms left, show "no rooms" message
-        if (roomsListContainer.children.length === 0) {
-            noRoomsMessage.classList.remove('hidden');
+if (socket) {
+    socket.on('roomCreated', (roomData) => {
+        console.log('New room created event received:', roomData);
+        // Add the new room to the list if it's not already there
+        if (!document.querySelector(`[data-room-id="${roomData.id}"]`)) {
+            renderRoomCard(roomData.id, roomData);
+            noRoomsMessage.classList.add('hidden'); // Hide "no rooms" message if a room appears
         }
-    }
-});
+    });
 
-// You might also want to listen for updates to online user counts in rooms
-// This would require the server to emit 'roomUserCountUpdate' events
-socket.on('roomUserCountUpdate', ({ roomId, count }) => {
-    const roomCard = document.querySelector(`[data-room-id="${roomId}"]`);
-    if (roomCard) {
-        const usersCountSpan = roomCard.querySelector('.users-count span');
-        if (usersCountSpan) {
-            usersCountSpan.textContent = `${count} مستخدم حاليًا`;
+    socket.on('roomDeleted', (roomId) => {
+        console.log('Room deleted event received:', roomId);
+        const roomCardToRemove = document.querySelector(`[data-room-id="${roomId}"]`);
+        if (roomCardToRemove) {
+            roomCardToRemove.remove();
+            // If no rooms left, show "no rooms" message
+            if (roomsListContainer.children.length === 0) {
+                noRoomsMessage.classList.remove('hidden');
+            }
         }
-    }
-});
+    });
+
+    // You might also want to listen for updates to online user counts in rooms
+    // This would require the server to emit 'roomUserCountUpdate' events
+    socket.on('roomUserCountUpdate', ({ roomId, count }) => {
+        const roomCard = document.querySelector(`[data-room-id="${roomId}"]`);
+        if (roomCard) {
+            const usersCountSpan = roomCard.querySelector('.users-count span');
+            if (usersCountSpan) {
+                usersCountSpan.textContent = `${count} مستخدم حاليًا`;
+            }
+        }
+    });
+}
