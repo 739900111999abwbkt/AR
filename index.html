@@ -50,33 +50,7 @@
             100% { background-position: 0% 0%; opacity: 1; }
         }
 
-        /* Glassmorphism Panel - Crystal Panels */
-        .glass-panel {
-            background-color: rgba(255, 255, 255, 0.03); /* Slightly more opaque glass */
-            backdrop-filter: blur(70px) saturate(400%); /* Intense blur and saturation */
-            border: 2px solid rgba(255, 255, 255, 0.15); /* Stronger, glowing border */
-            border-radius: 3.5rem; /* Very rounded corners */
-            box-shadow: 0 50px 150px 0 rgba(0, 0, 0, 1.5); /* Deep, diffused shadow */
-            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1.2);
-            position: relative;
-            overflow: hidden;
-        }
-        .glass-panel:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 60px 180px 0 rgba(0, 0, 0, 1.8);
-        }
-        .glass-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(0, 255, 255, 0.05), rgba(150, 0, 255, 0.05));
-            opacity: 0.8;
-            z-index: -1;
-            filter: blur(5px);
-        }
+        /* .glass-panel styles are now centralized in style.css as .panel */
 
         /* Header specific styles */
         header {
@@ -147,53 +121,7 @@
             letter-spacing: 1.5px;
         }
 
-        /* General button styling */
-        .btn-primary {
-            background: linear-gradient(45deg, #00E5FF, #007ACC);
-            color: white;
-            font-weight: bold;
-            padding: 14px 30px;
-            border-radius: 2rem;
-            box-shadow: 0 7px 20px rgba(0, 229, 255, 0.6);
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            text-shadow: 0 0 5px rgba(0,0,0,0.6);
-            border: none;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 50%;
-            transition: width 0.4s ease, height 0.4s ease, top 0.4s ease, left 0.4s ease;
-            transform: translate(-50%, -50%);
-            z-index: 0;
-        }
-        .btn-primary:hover::before {
-            width: 200%;
-            height: 200%;
-            top: -50%;
-            left: -50%;
-        }
-        .btn-primary span, .btn-primary i {
-            position: relative;
-            z-index: 1;
-        }
-        .btn-primary:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 9px 28px rgba(0, 229, 255, 0.9);
-            background: linear-gradient(45deg, #00F0FF, #0088DD);
-        }
+        /* General button styles are now centralized in style.css */
 
         /* Main content area */
         main {
@@ -611,17 +539,6 @@
             box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
             transform: translateY(-3px);
         }
-        #send-message-btn {
-            padding: 1rem 2rem;
-            border-radius: 1.2rem;
-            font-size: 1.2rem;
-            background: linear-gradient(45deg, #34D399, #10B981); /* Green for send */
-            box-shadow: 0 5px 15px rgba(52, 211, 153, 0.5);
-        }
-        #send-message-btn:hover {
-            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.8);
-            background: linear-gradient(45deg, #4ADE80, #22C55E);
-        }
 
         /* Mic Stage Section */
         #mic-stage-section {
@@ -980,22 +897,22 @@
 </head>
 <body>
     <!-- Toast Notification -->
-    <div id="toast" class="toast-notification glass-panel"></div>
+    <div id="toast" class="toast-notification panel"></div>
 
     <!-- Custom Popup for Alerts/Confirms -->
     <div id="custom-popup-overlay" class="popup-overlay"></div>
-    <div id="custom-popup" class="popup glass-panel">
+    <div id="custom-popup" class="popup panel">
         <!-- Content will be injected by JavaScript -->
     </div>
 
-    <header class="glass-panel">
+    <header class="panel">
         <div class="logo">AirChat</div>
         <nav class="flex items-center gap-6">
-            <a href="index.html" class="btn-primary">
+            <a href="index.html" class="btn btn-primary">
                 <i class="fas fa-home"></i>
                 العودة للوبي
             </a>
-            <button id="logout-btn" class="btn-primary" style="background: linear-gradient(45deg, #EF4444, #DC2626); box-shadow: 0 7px 20px rgba(239, 68, 68, 0.6);">
+            <button id="logout-btn" class="btn btn-danger">
                 <i class="fas fa-sign-out-alt"></i>
                 تسجيل الخروج
             </button>
@@ -1011,7 +928,7 @@
 
     <main>
         <!-- Left Panel - Friends List & Friend Requests -->
-        <div id="left-panel" class="glass-panel">
+        <div id="left-panel" class="panel">
             <h2>قائمة الأصدقاء</h2>
             <input type="text" id="search-friend-input" placeholder="ابحث عن صديق بالـ ID...">
             <div id="friends-list" class="flex flex-col">
@@ -1051,7 +968,7 @@
         </div>
 
         <!-- Right Panel - Chat Area & Mic Stage & AI Features -->
-        <div id="chat-area" class="glass-panel">
+        <div id="chat-area" class="panel">
             <div id="chat-header">
                 <img id="chat-partner-avatar" src="https://placehold.co/70x70/cccccc/333333?text=P" alt="Partner Avatar">
                 <div class="partner-info">
@@ -1061,7 +978,7 @@
             </div>
 
             <!-- Mic Stage Section -->
-            <div id="mic-stage-section" class="glass-panel">
+            <div id="mic-stage-section" class="panel">
                 <h2>المرحلة الصوتية</h2>
                 <div id="mic-circles-container">
                     <!-- Mic circles will be dynamically loaded here -->
@@ -1083,8 +1000,8 @@
                     </div>
                 </div>
                 <div class="mic-controls">
-                    <button id="request-mic-btn" class="disabled"><i class="fas fa-hand-paper"></i> طلب مايك</button>
-                    <button id="leave-mic-btn" class="disabled"><i class="fas fa-microphone-slash"></i> مغادرة المايك</button>
+                    <button id="request-mic-btn" class="btn btn-purple disabled"><i class="fas fa-hand-paper"></i> طلب مايك</button>
+                    <button id="leave-mic-btn" class="btn btn-danger disabled"><i class="fas fa-microphone-slash"></i> مغادرة المايك</button>
                 </div>
             </div>
 
@@ -1123,29 +1040,29 @@
                     <button id="attach-btn"><i class="fas fa-paperclip"></i></button>
                     <button id="voice-btn"><i class="fas fa-microphone"></i></button>
                 </div>
-                <button id="send-message-btn">
+                <button id="send-message-btn" class="btn btn-success">
                     <i class="fas fa-paper-plane"></i>
                     إرسال
                 </button>
             </div>
 
             <!-- AI Features Section -->
-            <div id="ai-features-section" class="glass-panel">
+            <div id="ai-features-section" class="panel">
                 <h2>ميزات الذكاء الاصطناعي</h2>
                 <div class="ai-buttons-grid">
-                    <button id="smart-reply-btn" class="ai-button btn-primary">
+                    <button id="smart-reply-btn" class="ai-button btn btn-success">
                         <span class="loading-spinner"></span>
                         <span><i class="fas fa-lightbulb"></i> ردود ذكية</span>
                     </button>
-                    <button id="creative-message-btn" class="ai-button btn-primary">
+                    <button id="creative-message-btn" class="ai-button btn btn-success">
                         <span class="loading-spinner"></span>
                         <span><i class="fas fa-magic"></i> رسالة إبداعية</span>
                     </button>
-                    <button id="summarize-chat-btn" class="ai-button btn-primary">
+                    <button id="summarize-chat-btn" class="ai-button btn btn-success">
                         <span class="loading-spinner"></span>
                         <span><i class="fas fa-file-alt"></i> تلخيص الدردشة</span>
                     </button>
-                    <button id="translate-message-btn" class="ai-button btn-primary">
+                    <button id="translate-message-btn" class="ai-button btn btn-success">
                         <span class="loading-spinner"></span>
                         <span><i class="fas fa-language"></i> ترجمة</span>
                     </button>

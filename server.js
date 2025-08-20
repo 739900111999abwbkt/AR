@@ -55,6 +55,13 @@ app.get('/room', (req, res) => {
 // These are in-memory for quick access, but persistent data is in Firestore.
 const activeRooms = {}; // roomId -> { name, background, music, micLock, pinnedMessage, users: { userId -> userObject }, stageUsers: [], moderators: [], chatMessages: [] }
 const userSockets = {}; // userId -> socket.id (for direct messaging/signaling)
+
+const GIFT_CATALOG = {
+    'gift_rose': { name: 'وردة', price: 10, icon: '🌹' },
+    'gift_diamond': { name: 'ماسة', price: 50, icon: '💎' },
+    'gift_car': { name: 'سيارة', price: 500, icon: '🚗' },
+    'gift_plane': { name: 'طائرة', price: 2000, icon: '✈️' }
+};
 const socketToUser = {}; // socket.id -> userId (reverse lookup)
 
 // --- Helper Functions for Firestore Interactions ---
@@ -150,11 +157,22 @@ io.on('connection', (socket) => {
 
         // Update user's online status and basic profile in Firestore
         // Use set with merge: true for initial connection to avoid overwriting existing fields
-        await db.collection('users').doc(userId).set({
-            username, avatar, role, xp, giftsReceived, bio,
-            lastActive: admin.firestore.FieldValue.serverTimestamp(),
-            isOnline: true
-        }, { merge: true });
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists || !userDoc.data().coins) {
+            // If user is new or doesn't have a coin balance, set it.
+            await userRef.set({
+                username, avatar, role, xp, giftsReceived, bio,
+                coins: 1000, // Starting coins
+                lastActive: admin.firestore.FieldValue.serverTimestamp(),
+                isOnline: true
+            }, { merge: true });
+        } else {
+            await userRef.update({
+                lastActive: admin.firestore.FieldValue.serverTimestamp(),
+                isOnline: true
+            });
+        }
 
         console.log(`User ${username} (${userId}) connected and profile updated.`);
     });
@@ -686,5 +704,128 @@ io.on('connection', (socket) => {
         }); // Send full update to sync mute states
         socket.emit('moderationUpdate', { targetUserId: userId, action: 'muteAllUsers', success: true, message: 'تم كتم جميع المستخدمين.' });
     });
+
+    // --- XP and Leveling System ---
+    const XP_VALUES = {
+        TIME_SPENT: 1, // Per minute
+        SEND_MESSAGE: 5,
+        SEND_GIFT: 20,
+        RECEIVE_GIFT: 10
+    };
+
+    function calculateLevel(xp) {
+        return Math.floor(Math.sqrt(xp / 100)) + 1;
+    }
+
+    async function updateUserXP(userId, xpToAdd, roomId = null) {
+        const userRef = db.collection('users').doc(userId);
+        try {
+            await db.runTransaction(async (transaction) => {
+                const userDoc = await transaction.get(userRef);
+                if (!userDoc.exists) {
+                    throw "User document does not exist!";
+                }
+                const currentXP = userDoc.data().xp || 0;
+                const newXP = currentXP + xpToAdd;
+                const newLevel = calculateLevel(newXP);
+
+                transaction.update(userRef, { xp: newXP, level: newLevel });
+
+                // Emit update to the user
+                const userSocketId = userSockets[userId];
+                if (userSocketId) {
+                    io.to(userSocketId).emit('userStatsUpdate', {
+                        xp: newXP,
+                        level: newLevel,
+                        giftsReceived: userDoc.data().giftsReceived || 0
+                    });
+                }
+                 // Also update the user object in the in-memory room state if they are in one
+                 if (roomId && activeRooms[roomId] && activeRooms[roomId].users[userId]) {
+                    activeRooms[roomId].users[userId].xp = newXP;
+                    activeRooms[roomId].users[userId].level = newLevel;
+                }
+            });
+            console.log(`User ${userId} awarded ${xpToAdd} XP. New total: success.`);
+        } catch (e) {
+            console.error("XP update transaction failed: ", e);
+        }
+    }
+
+    socket.on('userAction', ({ actionType, roomId }) => {
+        const userId = socketToUser[socket.id];
+        if (!userId) return;
+
+        const xpToAdd = XP_VALUES[actionType.toUpperCase()];
+        if (xpToAdd) {
+            updateUserXP(userId, xpToAdd, roomId);
+        }
+    });
+
+
+    // --- Gifting System ---
+    socket.on('getGifts', (callback) => {
+        callback(GIFT_CATALOG);
+    });
+
+    socket.on('sendGift', async ({ giftId, recipientId, roomId }) => {
+        const senderId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const gift = GIFT_CATALOG[giftId];
+
+        if (!senderId || !room || !gift || !room.users[senderId] || (recipientId !== 'room' && !room.users[recipientId])) {
+            socket.emit('giftResult', { success: false, message: 'خطأ في إرسال الهدية. المستخدم أو الغرفة أو الهدية غير موجودة.' });
+            return;
+        }
+
+        const senderRef = db.collection('users').doc(senderId);
+
+        try {
+            await db.runTransaction(async (transaction) => {
+                const senderDoc = await transaction.get(senderRef);
+                if (!senderDoc.exists) throw "Sender does not exist.";
+
+                const senderData = senderDoc.data();
+                if ((senderData.coins || 0) < gift.price) {
+                    throw "رصيدك من العملات غير كافٍ.";
+                }
+
+                // 1. Deduct coins from sender
+                const newCoins = senderData.coins - gift.price;
+                transaction.update(senderRef, { coins: newCoins });
+
+                // 2. Update sender's XP for sending a gift
+                const senderXP = senderData.xp || 0;
+                const newSenderXP = senderXP + XP_VALUES.SEND_GIFT;
+                transaction.update(senderRef, { xp: newSenderXP });
+
+                // 3. Update recipient's giftsReceived and XP
+                if (recipientId !== 'room') {
+                    const recipientRef = db.collection('users').doc(recipientId);
+                    const recipientDoc = await transaction.get(recipientRef);
+                    if (recipientDoc.exists) {
+                        const recipientData = recipientDoc.data();
+                        const newGiftsReceived = (recipientData.giftsReceived || 0) + 1;
+                        const recipientXP = recipientData.xp || 0;
+                        const newRecipientXP = recipientXP + XP_VALUES.RECEIVE_GIFT;
+                        transaction.update(recipientRef, { giftsReceived: newGiftsReceived, xp: newRecipientXP });
+                    }
+                }
+            });
+
+            // If transaction is successful, notify clients
+            socket.emit('giftResult', { success: true, message: 'تم إرسال الهدية بنجاح!', newCoinBalance: (await getUserProfile(senderId)).coins });
+            io.to(roomId).emit('giftReceived', {
+                senderUsername: room.users[senderId].username,
+                recipientUsername: recipientId === 'room' ? 'الغرفة' : room.users[recipientId].username,
+                gift,
+            });
+
+        } catch (error) {
+            console.error('Gift transaction failed:', error);
+            socket.emit('giftResult', { success: false, message: error.toString() });
+        }
+    });
+
 
     socket.on('makeAnnouncement', async ({

@@ -9,34 +9,7 @@
     <!-- Link to your global styles -->
     <link rel="stylesheet" href="style.css" />
     <style>
-        /* Specific styles for the register container, complementing style.css */
-        .register-container {
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .register-container h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #4f46e5;
-            margin-bottom: 1.5rem;
-        }
-        .register-container form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .register-container .button {
-            width: 100%; /* Make button full width */
-            text-align: center;
-        }
+        /* All specific styles moved to style.css */
     </style>
 </head>
 <body class="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -46,7 +19,7 @@
             <input type="text" id="username" placeholder="اسم المستخدم" required />
             <input type="email" id="email" placeholder="البريد الإلكتروني" required />
             <input type="password" id="password" placeholder="كلمة المرور" required />
-            <button type="submit" class="button">تسجيل</button>
+            <button type="submit" class="btn btn-primary w-full">تسجيل</button>
         </form>
         <p class="text-gray-600 dark:text-gray-400 mt-4">
             لديك حساب بالفعل؟ <a href="login.html" class="text-blue-600 hover:underline">تسجيل الدخول</a>

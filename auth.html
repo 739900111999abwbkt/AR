@@ -52,46 +52,7 @@
             100% { background-position: 0% 0%; opacity: 1; }
         }
 
-        /* Glassmorphism Panel - Luminous Gateway */
-        .auth-panel {
-            background-color: rgba(255, 255, 255, 0.03); /* Slightly more opaque glass */
-            backdrop-filter: blur(70px) saturate(400%); /* Intense blur and saturation */
-            border: 2px solid rgba(255, 255, 255, 0.15); /* Stronger, glowing border */
-            border-radius: 3.5rem; /* Very rounded corners */
-            box-shadow: 0 50px 150px 0 rgba(0, 0, 0, 1.5); /* Deep, diffused shadow */
-            padding: 4rem;
-            width: 90%;
-            max-width: 600px; /* Wider panel for better layout */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-            animation: panel-glow 5s infinite alternate ease-in-out;
-            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1.2);
-        }
-        .auth-panel:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 60px 180px 0 rgba(0, 0, 0, 1.8);
-        }
-        @keyframes panel-glow {
-            0% { border-color: rgba(0, 255, 255, 0.3); box-shadow: 0 50px 150px 0 rgba(0, 0, 0, 1.5), 0 0 30px rgba(0, 255, 255, 0.4); }
-            50% { border-color: rgba(150, 0, 255, 0.3); box-shadow: 0 50px 150px 0 rgba(0, 0, 0, 1.5), 0 0 30px rgba(150, 0, 255, 0.4); }
-            100% { border-color: rgba(0, 255, 255, 0.3); box-shadow: 0 50px 150px 0 rgba(0, 0, 0, 1.5), 0 0 30px rgba(0, 255, 255, 0.4); }
-        }
-        /* Inner cosmic texture for the panel */
-        .auth-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, rgba(0, 255, 255, 0.05), rgba(150, 0, 255, 0.05));
-            opacity: 0.8;
-            z-index: -1;
-            filter: blur(5px);
-        }
+        /* Styles moved to style.css for consistency */
 
         /* Logo Styling */
         .logo {
@@ -210,64 +171,6 @@
         }
         .input-group input:focus + .input-icon {
             color: #00E5FF;
-        }
-
-        /* Action Buttons */
-        .action-button {
-            width: 100%;
-            padding: 1.5rem;
-            border-radius: 1.8rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: white;
-            border: none;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            z-index: 10;
-            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1.2);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-        }
-        .action-button.login-btn {
-            background: linear-gradient(45deg, #34D399, #10B981); /* Green gradient */
-            box-shadow: 0 8px 20px rgba(52, 211, 153, 0.7);
-        }
-        .action-button.login-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(52, 211, 153, 1);
-            background: linear-gradient(45deg, #4ADE80, #22C55E);
-        }
-        .action-button.register-btn {
-            background: linear-gradient(45deg, #8B5CF6, #6D28D9); /* Purple gradient */
-            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.7);
-        }
-        .action-button.register-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(139, 92, 246, 1);
-            background: linear-gradient(45deg, #A78BFA, #8B5CF6);
-        }
-        .action-button::before { /* Inner ripple/glow */
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            transition: width 0.5s ease, height 0.5s ease, top 0.5s ease, left 0.5s ease;
-            transform: translate(-50%, -50%);
-            z-index: 0;
-        }
-        .action-button:hover::before {
-            width: 250%;
-            height: 250%;
-            top: -75%;
-            left: -75%;
-        }
-        .action-button span {
-            position: relative;
-            z-index: 1;
         }
 
         /* Forgot Password / Social Login */
@@ -528,11 +431,11 @@
 
     <!-- Custom Popup for Alerts/Confirms -->
     <div id="custom-popup-overlay" class="popup-overlay"></div>
-    <div id="custom-popup" class="popup">
+    <div id="custom-popup" class="popup panel">
         <!-- Content will be injected by JavaScript -->
     </div>
 
-    <div class="auth-panel">
+    <div class="auth-panel panel">
         <div class="logo">AirChat</div>
 
         <div class="form-toggle">
@@ -552,7 +455,7 @@
                 <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required>
                 <i class="fas fa-lock input-icon"></i>
             </div>
-            <button type="submit" id="login-btn" class="action-button login-btn">
+            <button type="submit" id="login-btn" class="btn btn-success w-full">
                 <span class="loading-spinner"></span>
                 <span>تسجيل الدخول</span>
             </button>
@@ -597,7 +500,7 @@
                 <input type="password" id="register-confirm-password" placeholder="أعد إدخال كلمة المرور" required>
                 <i class="fas fa-lock input-icon"></i>
             </div>
-            <button type="submit" id="register-btn" class="action-button register-btn">
+            <button type="submit" id="register-btn" class="btn btn-purple w-full">
                 <span class="loading-spinner"></span>
                 <span>التسجيل الآن</span>
             </button>

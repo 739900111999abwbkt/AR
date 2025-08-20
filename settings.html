@@ -9,49 +9,7 @@
     <!-- Link to your global styles -->
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Specific styles for the settings container, complementing style.css */
-        .settings-container {
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .settings-container h2 {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: #4f46e5;
-            margin-bottom: 1.5rem;
-        }
-        .setting {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end; /* Align labels to the right for Arabic */
-            gap: 0.5rem;
-            width: 100%;
-        }
-        .setting label {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
-        }
-        .setting input, .setting select {
-            width: 100%;
-        }
-        .actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        .actions .button {
-            flex-grow: 1; /* Make buttons expand to fill space */
-        }
+        /* All specific styles moved to style.css */
     </style>
 </head>
 <body class="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -83,8 +41,8 @@
         </div>
 
         <div class="actions">
-            <button onclick="saveSettings()" class="button bg-green-600 hover:bg-green-700">💾 حفظ</button>
-            <button onclick="goBack()" class="button bg-gray-500 hover:bg-gray-600">↩️ رجوع</button>
+            <button onclick="saveSettings()" class="btn btn-success">💾 حفظ</button>
+            <button onclick="goBack()" class="btn">↩️ رجوع</button>
         </div>
     </div>
 
