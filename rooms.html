@@ -9,62 +9,7 @@
     <!-- Link to your global styles -->
     <link rel="stylesheet" href="style.css" />
     <style>
-        /* Specific styles for the rooms list container, complementing style.css */
-        .rooms-list-container {
-            background-color: #ffffff;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            padding: 2.5rem;
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .rooms-list-container h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #4f46e5;
-            margin-bottom: 1.5rem;
-        }
-        .rooms-list-container ul {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .rooms-list-container li {
-            background-color: #f9fafb;
-            padding: 1.25rem 1.5rem;
-            border-radius: 0.75rem;
-            font-size: 1.1rem;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .rooms-list-container li:hover {
-            background-color: #eef2ff;
-            color: #4f46e5;
-            transform: translateX(5px);
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
-        }
-        .rooms-list-container li a {
-            text-decoration: none;
-            color: inherit;
-            font-weight: 500;
-            flex-grow: 1;
-            text-align: right;
-        }
-        .rooms-list-container li span {
-            font-size: 0.9rem;
-            color: #999;
-            margin-right: 1rem; /* Space between room name and user count */
-        }
+        /* All specific styles moved to style.css */
     </style>
 </head>
 <body class="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -85,7 +30,7 @@
                 <span class="text-sm text-gray-500 dark:text-gray-400">👥 8/8</span>
             </li>
         </ul>
-        <button onclick="window.location.href='index.html'" class="button mt-4">العودة للرئيسية</button>
+        <button onclick="window.location.href='index.html'" class="btn btn-primary mt-4">العودة للرئيسية</button>
     </div>
 
     <script type="module">

@@ -782,3 +782,46 @@ export function updateMicSpeakingStatus(userId, isSpeaking) {
             if (micAudio) {
                 if (isSpeaking) {
                     micAudi
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Populates the gift panel with available gifts.
+ * @param {Object} giftCatalog - An object where keys are gift IDs and values are gift objects.
+ */
+export function populateGiftPanel(giftCatalog) {
+    const giftList = document.getElementById('gift-list');
+    if (!giftList) return;
+
+    giftList.innerHTML = ''; // Clear existing gifts
+    for (const giftId in giftCatalog) {
+        const gift = giftCatalog[giftId];
+        const giftItem = document.createElement('div');
+        giftItem.className = 'gift-item';
+        giftItem.dataset.giftId = giftId;
+        giftItem.innerHTML = `
+            <div class="text-4xl">${gift.icon}</div>
+            <span class="name">${gift.name}</span>
+            <span class="price">${gift.price} 🪙</span>
+        `;
+        giftItem.addEventListener('click', () => {
+            // Maybe highlight the selected gift
+            console.log(`Selected gift: ${gift.name}`);
+        });
+        giftList.appendChild(giftItem);
+    }
+}
+
+/**
+ * Updates the coin balance display in the UI.
+ * @param {number} balance - The user's new coin balance.
+ */
+export function updateCoinBalance(balance) {
+    const coinBalanceElement = document.getElementById('user-coin-balance');
+    if (coinBalanceElement) {
+        coinBalanceElement.textContent = balance;
+    }
+}

@@ -14,8 +14,10 @@ import {
     showGiftAnimation, updateHonorBoard, updateTopUsersPanel,
     updateModeratorList, logUserEntryExit, closePopup,
     updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
-    toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup
+    toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
+    populateGiftPanel, updateCoinBalance
 } from './room_ui.js';
+import { calculateLevel } from './utils.js';
 
 // Import socket and currentUser from main.js (assuming they are initialized there)
 import { socket, currentUser } from './main.js';
@@ -62,10 +64,11 @@ if (socket) {
     // Update current user's personal displays if their data is in roomState.users
     if (currentUser && roomState.users[currentUser.id]) {
         const user = roomState.users[currentUser.id];
+        const userLevel = calculateLevel(user.xp || 0);
         updateXPDisplay(user.xp || 0);
-        updateLevelDisplay(user.level || calculateLevel(user.xp || 0));
+        updateLevelDisplay(userLevel);
         updateGiftCounterDisplay(user.giftsReceived || 0);
-        updateUserBadgeNameDisplay(user.username, user.level || calculateLevel(user.xp || 0), user.giftsReceived || 0);
+        updateUserBadgeNameDisplay(user.username, userLevel, user.giftsReceived || 0);
         updateCurrentUserDisplay(user); // Update top bar with current user's latest info
     }
 
@@ -257,12 +260,15 @@ socket.on('pinnedMessageUpdate', (message) => {
 socket.on('userStatsUpdate', (stats) => {
     if (currentUser) {
         currentUser.xp = stats.xp;
-        currentUser.level = stats.level;
+        // The level is now calculated on the client-side for consistency
+        const newLevel = calculateLevel(stats.xp);
+        currentUser.level = newLevel;
         currentUser.giftsReceived = stats.giftsReceived;
+
         updateXPDisplay(currentUser.xp);
-        updateLevelDisplay(currentUser.level);
+        updateLevelDisplay(newLevel);
         updateGiftCounterDisplay(currentUser.giftsReceived);
-        updateUserBadgeNameDisplay(currentUser.username, currentUser.level, currentUser.giftsReceived);
+        updateUserBadgeNameDisplay(currentUser.username, newLevel, currentUser.giftsReceived);
     }
 });
 
@@ -289,6 +295,7 @@ export function sendMessage(messageText) {
     }
     if (socket) {
         socket.emit('sendChatMessage', { text: messageText, roomId: roomState.id });
+        socket.emit('userAction', { actionType: 'sendMessage', roomId: roomState.id });
     }
     document.getElementById('chat-input').value = ''; // Clear input
 }
@@ -459,6 +466,7 @@ export async function sendGift(giftId, recipientId) {
     if (confirmed) {
         if (socket) {
             socket.emit('sendGift', { giftId, recipientId, roomId: roomState.id });
+            socket.emit('userAction', { actionType: 'sendGift', roomId: roomState.id });
         }
         showCustomAlert(`تم إرسال ${gift.name} إلى ${recipientName}.`, 'success');
         showGiftAnimation(); // Trigger UI animation
@@ -773,5 +781,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-music-btn').addEventListener('click', toggleMusic);
     document.getElementById('toggle-dark-mode-btn').addEventListener('click', toggleDarkMode);
     document.getElementById('room-rules-btn').addEventListener('click', showRoomRulesPopup); // Event listener for room rules button
+
+    // Set up a timer to award XP for time spent in the room
+    if (socket) {
+        setInterval(() => {
+            socket.emit('userAction', { actionType: 'timeSpent', roomId: roomState.id });
+        }, 60000); // 60000ms = 1 minute
+
+        // Add logic for the gift panel
+        const sendGiftBtnBottom = document.getElementById('send-gift-btn-bottom');
+        if (sendGiftBtnBottom) {
+            sendGiftBtnBottom.addEventListener('click', () => {
+                socket.emit('getGifts', (giftCatalog) => {
+                    populateGiftPanel(giftCatalog);
+                    toggleGiftPanel(); // Show the panel
+                });
+            });
+        }
+
+        socket.on('giftResult', ({ success, message, newCoinBalance }) => {
+            showCustomAlert(message, success ? 'success' : 'error');
+            if (success) {
+                updateCoinBalance(newCoinBalance);
+            }
+        });
+    }
 });
 

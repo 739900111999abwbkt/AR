@@ -785,8 +785,13 @@
         <div id="top-bar">
             <div class="user-info">
                 <img id="current-user-avatar" src="https://placehold.co/45x45/cccccc/333333?text=User" alt="User Avatar"/>
-                <span id="current-username">اسم المستخدم</span>
-                <span id="current-user-id" class="user-id">ID: 123456</span>
+                <div>
+                    <span id="current-username">اسم المستخدم</span>
+                    <div class="flex items-center gap-2 text-yellow-400">
+                        <i class="fas fa-coins"></i>
+                        <span id="user-coin-balance">0</span>
+                    </div>
+                </div>
             </div>
             <div class="global-controls">
                 <button id="toggle-music-btn">🎵 موسيقى</button>
