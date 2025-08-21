@@ -6,7 +6,7 @@
  */
 
 // Import necessary modules from main.js and utils.js
-import { showCustomAlert, showCustomConfirm, socket, currentUser } from '/js/main.js';
+import { showCustomAlert, showCustomConfirm, socket, currentUser } from './main.js';
 
 // --- UI Element References ---
 const micsContainer = document.getElementById('mics-grid'); // The grid for mic circles
@@ -784,6 +784,79 @@ export function updateMicSpeakingStatus(userId, isSpeaking) {
                     micAudi
                 }
             }
+        }
+    }
+}
+
+/**
+ * Shows the edit profile popup and populates it with the current user's data.
+ */
+export function showEditProfilePopup() {
+    const popup = document.getElementById('edit-profile-popup');
+    if (!popup) return;
+
+    // Populate the fields with the current user's data
+    // Assuming 'currentUser' is available from main.js and has the necessary info
+    if (currentUser) {
+        document.getElementById('profile-username-input').value = currentUser.username || '';
+        document.getElementById('profile-avatar-input').value = currentUser.avatar || '';
+        document.getElementById('profile-bio-input').value = currentUser.bio || '';
+    }
+
+    popup.classList.add('show');
+}
+
+/**
+ * Updates all instances of a user's display (name and avatar) across the UI.
+ * @param {string} userId - The ID of the user to update.
+ * @param {object} updates - An object containing the new { username, avatar }.
+ */
+export function updateUserDisplay(userId, updates) {
+    // Update the main user display in the top bar if it's the current user
+    if (userId === currentUser.id) {
+        if (updates.username) {
+            document.getElementById('current-username').textContent = updates.username;
+            currentUser.username = updates.username; // Update local state
+        }
+        if (updates.avatar) {
+            document.getElementById('current-user-avatar').src = updates.avatar;
+            currentUser.avatar = updates.avatar; // Update local state
+        }
+    }
+
+    // Update the user's mic on the stage grid
+    const stageMic = document.querySelector(`.stage-mic-slot[data-user-id="${userId}"]`);
+    if (stageMic) {
+        if (updates.username) {
+            stageMic.querySelector('.mic-name').textContent = updates.username;
+        }
+        if (updates.avatar) {
+            stageMic.querySelector('img').src = updates.avatar;
+        }
+    }
+
+    // Update the user's mic in the general grid
+    const generalMic = document.querySelector(`.general-mic-circle[data-user-id="${userId}"]`);
+    if (generalMic) {
+        if (updates.username) {
+            generalMic.querySelector('.mic-name').textContent = updates.username;
+        }
+        if (updates.avatar) {
+            generalMic.querySelector('img').src = updates.avatar;
+        }
+    }
+
+    // If the user info popup is currently open for this user, update it too
+    const userInfoPopup = document.getElementById('user-info-popup');
+    if (userInfoPopup.classList.contains('show') && document.getElementById('popup-userid').textContent === userId) {
+        if (updates.username) {
+            document.getElementById('popup-username').textContent = updates.username;
+        }
+        if (updates.avatar) {
+            document.getElementById('popup-user-avatar').src = updates.avatar;
+        }
+        if (updates.bio) {
+            document.getElementById('popup-bio').textContent = updates.bio;
         }
     }
 }

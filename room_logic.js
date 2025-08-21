@@ -16,7 +16,8 @@ import {
     updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
     toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
     populateGiftPanel, updateCoinBalance,
-    toggleGameContainer, renderGameBoard
+    toggleGameContainer, renderGameBoard,
+    updateRoomDisplay, toggleAdminControls, playSound, updateUserDisplay // Import new UI functions
 } from './room_ui.js';
 import { calculateLevel } from './utils.js';
 
@@ -39,20 +40,6 @@ export let roomState = {
     onlineCount: 0,
     stayDuration: 0 // In seconds
 };
-
-import {
-    showCustomAlert, showCustomConfirm,
-    updateMicSpeakingStatus, addChatMessage,
-    populateStageMics, populateGeneralMics,
-    updateCurrentUserDisplay, updateOnlineCount, updateStayTimer,
-    showGiftAnimation, updateHonorBoard, updateTopUsersPanel,
-    updateModeratorList, logUserEntryExit, closePopup,
-    updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
-    toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
-    populateGiftPanel, updateCoinBalance,
-    toggleGameContainer, renderGameBoard,
-    updateRoomDisplay, toggleAdminControls, playSound // Import new UI functions
-} from './room_ui.js';
 
 // --- Initial Socket.io Event Listeners (from server to client) ---
 // NOTE: All socket listeners are wrapped in this conditional block.
@@ -329,6 +316,22 @@ socket.on('topUsersUpdate', (topUsers) => {
 socket.on('honorBoardUpdate', (honorBoard) => {
     updateHonorBoard(honorBoard);
 });
+
+// Event: Listen for profile updates from other users
+socket.on('userProfileUpdated', ({ userId, updates }) => {
+    console.log(`Received profile update for user ${userId}:`, updates);
+    // Update the user's data in the local state
+    if (roomState.users[userId]) {
+        Object.assign(roomState.users[userId], updates);
+    }
+    // Call the UI function to update all instances of the user's display
+    updateUserDisplay(userId, updates);
+});
+
+// Event: Listen for the result of our own profile update attempt
+socket.on('profileUpdateResult', ({ success, message }) => {
+    showCustomAlert(message, success ? 'success' : 'error');
+});
 }
 
 
@@ -412,6 +415,20 @@ export function updateRoomSettings(description, background) {
     if (socket) {
         socket.emit('updateRoomSettings', { description, background, roomId: roomState.id });
         showCustomAlert('تم إرسال الإعدادات الجديدة.', 'success');
+    }
+}
+
+/**
+ * Sends the user's updated profile data to the server.
+ * @param {object} profileData - An object containing { username, avatar, bio }.
+ */
+export function saveProfile(profileData) {
+    if (!profileData) {
+        showCustomAlert('لا توجد بيانات لتحديثها.', 'warning');
+        return;
+    }
+    if (socket) {
+        socket.emit('updateUserProfile', profileData);
     }
 }
 
