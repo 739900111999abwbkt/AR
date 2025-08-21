@@ -1015,4 +1015,64 @@ io.on('connection', (socket) => {
     });
 
 
-    socket.on('makeAnnouncement', async ({
+    socket.on('makeAnnouncement', async ({ roomId, text }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('error', { message: 'ليس لديك صلاحية لإرسال إعلانات.' });
+            return;
+        }
+
+        if (!text || text.trim() === '') {
+            socket.emit('error', { message: 'لا يمكن إرسال إعلان فارغ.' });
+            return;
+        }
+
+        // Broadcast a special event for the announcement UI
+        io.to(roomId).emit('announcement', {
+            text: text.trim(),
+            sender: requester.username
+        });
+
+        // Also send it as a system message in chat
+        io.to(roomId).emit('chatMessage', {
+            type: 'announcement',
+            text: text.trim(),
+            username: requester.username
+        });
+
+        console.log(`Announcement made in room ${roomId} by ${requester.username}: ${text.trim()}`);
+    });
+
+    socket.on('pinMessage', async ({ roomId, message }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            socket.emit('error', { message: 'ليس لديك صلاحية لتثبيت الرسائل.' });
+            return;
+        }
+
+        const messageToPin = message.trim();
+
+        // Update in-memory state
+        room.pinnedMessage = messageToPin;
+
+        // Update Firestore
+        await updateRoomData(roomId, { pinnedMessage: messageToPin });
+
+        // Broadcast to all clients in the room
+        io.to(roomId).emit('pinnedMessageUpdate', messageToPin);
+
+        console.log(`Message pinned in room ${roomId} by ${requester.username}: ${messageToPin}`);
+    });
+
+    // --- Server Listener ---
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+});
