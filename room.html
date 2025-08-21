@@ -1054,6 +1054,7 @@
                 <button id="report-user-btn" class="button bg-yellow-500 hover:bg-yellow-600 text-sm py-2"><i class="fas fa-exclamation-triangle"></i> إبلاغ</button>
                 <button id="room-rules-btn" class="button bg-teal-500 hover:bg-teal-600 text-sm py-2"><i class="fas fa-gavel"></i> قوانين الغرفة</button>
                 <button id="send-announcement-btn" class="button bg-orange-500 hover:bg-orange-600 text-sm py-2"><i class="fas fa-bullhorn"></i> إرسال إشعار</button>
+                <button id="pin-message-btn" class="button bg-cyan-500 hover:bg-cyan-600 text-sm py-2"><i class="fas fa-thumbtack"></i> تثبيت رسالة</button>
                 <button id="mic-lock-btn" class="button bg-red-500 hover:bg-red-600 text-sm py-2"><i class="fas fa-lock"></i> قفل المايك</button>
                 <button id="mute-all-users-btn" class="button bg-orange-700 hover:bg-orange-800 text-sm py-2"><i class="fas fa-volume-mute"></i> كتم الجميع</button>
                 <button id="assign-moderator-btn" class="button bg-green-500 hover:bg-green-600 text-sm py-2"><i class="fas fa-shield-alt"></i> تعيين مشرف</button>
@@ -1184,7 +1185,7 @@
             toggleDarkMode, assignModerator, reportUser, changeUsername,
             requestMicAscent, requestMicDescent, // Mic stage control
             kickUser, banUser, toggleUserMute, // Moderation actions
-            transferUserMic, preventMicAscent, updateRoomSettings, saveProfile // New moderation actions
+            transferUserMic, preventMicAscent, updateRoomSettings, saveProfile, pinMessage // New moderation actions
         } from './room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
@@ -1297,6 +1298,24 @@
         });
 
         document.getElementById('change-background-btn').addEventListener('click', () => showCustomAlert('تغيير الخلفية (قيد التطوير)', 'info'));
+
+        // Make the announcement button functional
+        document.getElementById('send-announcement-btn').addEventListener('click', async () => {
+            const announcementText = await showCustomConfirm('أدخل نص الإعلان:', 'input');
+            if (announcementText) {
+                makeAnnouncement(announcementText);
+            }
+        });
+
+        // Make the pin message button functional
+        document.getElementById('pin-message-btn').addEventListener('click', async () => {
+            const messageToPin = await showCustomConfirm('أدخل الرسالة لتثبيتها (اتركها فارغة للإلغاء):', 'input');
+            // The prompt returns null if cancelled, so we check for that
+            if (messageToPin !== null) {
+                pinMessage(messageToPin);
+            }
+        });
+
         document.getElementById('copy-room-link-btn').addEventListener('click', () => {
             // This will copy the current room URL
             const roomLink = window.location.href;

@@ -182,6 +182,7 @@ export function createOrUpdateMicElement(user) {
     // Apply dynamic classes based on user state
     micElement.classList.toggle('muted', user.isMuted);
     micElement.classList.toggle('admin', user.role === 'admin');
+    micElement.classList.toggle('moderator', user.role === 'moderator'); // Add moderator class
     micElement.classList.toggle('vip', user.vipLevel > 0);
     // Add online/offline status
     let statusIndicator = micElement.querySelector('.user-status');
@@ -343,7 +344,26 @@ export function showUserInfoPopup(user) {
 
     // Determine if the current user is an admin/moderator to show moderation options
     const canModerate = currentUser && (currentUser.role === 'admin' || currentUser.role === 'moderator');
+    const isAdmin = currentUser && currentUser.role === 'admin';
     const isMuted = mutedUsers[user.userId]; // Check local mute state
+
+    let moderationButtons = '';
+    if (canModerate) {
+        moderationButtons += `
+            <button onclick="toggleUserMute('${user.userId}')" class="button ${isMuted ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600'}">
+                ${isMuted ? '🔊 إلغاء كتم' : '🔇 كتم'}
+            </button>
+            <button onclick="kickUser('${user.userId}')" class="button bg-red-700 hover:bg-red-800">🚫 طرد</button>
+        `;
+    }
+    if (isAdmin) {
+        moderationButtons += `<button onclick="banUser('${user.userId}')" class="button bg-red-900 hover:bg-red-950">⛔ حظر</button>`;
+        if (user.role === 'moderator') {
+            moderationButtons += `<button onclick="removeModerator('${user.userId}')" class="button bg-orange-600 hover:bg-orange-700">🔻 إزالة مشرف</button>`;
+        } else if (user.role === 'member') {
+            moderationButtons += `<button onclick="assignModerator('${user.userId}')" class="button bg-green-600 hover:bg-green-700">🔼 ترقية لمشرف</button>`;
+        }
+    }
 
     popup.innerHTML = `
         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">👤 معلومات المستخدم</h3>
@@ -359,13 +379,7 @@ export function showUserInfoPopup(user) {
             <button onclick="sendPrivateMessagePopup('${user.userId}', '${user.username}')" class="button bg-blue-600 hover:bg-blue-700">✉️ رسالة خاصة</button>
             <button onclick="sendGiftPopup('${user.userId}', '${user.username}')" class="button bg-pink-600 hover:bg-pink-700">🎁 إرسال هدية</button>
             <button onclick="increaseReaction('${user.userId}')" class="button bg-red-500 hover:bg-red-600">🔥 تفاعل</button>
-            ${canModerate ? `
-                <button onclick="toggleUserMute('${user.userId}')" class="button ${isMuted ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600'}">
-                    ${isMuted ? '🔊 إلغاء كتم' : '🔇 كتم'}
-                </button>
-                <button onclick="kickUser('${user.userId}')" class="button bg-red-700 hover:bg-red-800">🚫 طرد</button>
-                <button onclick="banUser('${user.userId}')" class="button bg-red-900 hover:bg-red-950">⛔ حظر</button>
-            ` : ''}
+            ${moderationButtons}
             <button onclick="closePopup('${popupId}')" class="button bg-gray-500 hover:bg-gray-600">❌ إغلاق</button>
         </div>
     `;
@@ -785,6 +799,24 @@ export function updateMicSpeakingStatus(userId, isSpeaking) {
                 }
             }
         }
+    }
+}
+
+/**
+ * Displays a room-wide announcement in a prominent popup.
+ * @param {object} data - An object containing the announcement { text, sender }.
+ */
+export function showAnnouncement({ text, sender }) {
+    const announcementPopup = document.getElementById('central-message-area');
+    if (announcementPopup) {
+        announcementPopup.querySelector('h3').textContent = `📣 إعلان من ${sender}`;
+        announcementPopup.querySelector('p').textContent = text;
+        announcementPopup.classList.add('show');
+
+        // Automatically hide the announcement after a delay
+        setTimeout(() => {
+            announcementPopup.classList.remove('show');
+        }, 8000); // Keep on screen for 8 seconds
     }
 }
 

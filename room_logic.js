@@ -17,7 +17,7 @@ import {
     toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
     populateGiftPanel, updateCoinBalance,
     toggleGameContainer, renderGameBoard,
-    updateRoomDisplay, toggleAdminControls, playSound, updateUserDisplay // Import new UI functions
+    updateRoomDisplay, toggleAdminControls, playSound, updateUserDisplay, showAnnouncement // Import new UI functions
 } from './room_ui.js';
 import { calculateLevel } from './utils.js';
 
@@ -332,6 +332,11 @@ socket.on('userProfileUpdated', ({ userId, updates }) => {
 socket.on('profileUpdateResult', ({ success, message }) => {
     showCustomAlert(message, success ? 'success' : 'error');
 });
+
+// Event: Listen for room-wide announcements
+socket.on('announcement', (data) => {
+    showAnnouncement(data);
+});
 }
 
 
@@ -429,6 +434,30 @@ export function saveProfile(profileData) {
     }
     if (socket) {
         socket.emit('updateUserProfile', profileData);
+    }
+}
+
+/**
+ * Sends a request to make a room-wide announcement.
+ * @param {string} text - The announcement text.
+ */
+export function makeAnnouncement(text) {
+    if (!text || text.trim() === '') {
+        showCustomAlert('لا يمكن إرسال إعلان فارغ.', 'warning');
+        return;
+    }
+    if (socket) {
+        socket.emit('makeAnnouncement', { text, roomId: roomState.id });
+    }
+}
+
+/**
+ * Sends a request to pin or unpin a message in the room.
+ * @param {string} message - The message to pin. An empty string unpins.
+ */
+export function pinMessage(message) {
+    if (socket) {
+        socket.emit('pinMessage', { message, roomId: roomState.id });
     }
 }
 
