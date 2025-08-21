@@ -15,7 +15,8 @@ import {
     updateModeratorList, logUserEntryExit, closePopup,
     updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
     toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
-    populateGiftPanel, updateCoinBalance
+    populateGiftPanel, updateCoinBalance,
+    toggleGameContainer, renderGameBoard
 } from './room_ui.js';
 import { calculateLevel } from './utils.js';
 
@@ -39,11 +40,56 @@ export let roomState = {
     stayDuration: 0 // In seconds
 };
 
+import {
+    showCustomAlert, showCustomConfirm,
+    updateMicSpeakingStatus, addChatMessage,
+    populateStageMics, populateGeneralMics,
+    updateCurrentUserDisplay, updateOnlineCount, updateStayTimer,
+    showGiftAnimation, updateHonorBoard, updateTopUsersPanel,
+    updateModeratorList, logUserEntryExit, closePopup,
+    updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
+    toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
+    populateGiftPanel, updateCoinBalance,
+    toggleGameContainer, renderGameBoard,
+    updateRoomDisplay, toggleAdminControls, playSound // Import new UI functions
+} from './room_ui.js';
+
 // --- Initial Socket.io Event Listeners (from server to client) ---
 // NOTE: All socket listeners are wrapped in this conditional block.
 // This is to prevent errors when the site is deployed statically without a server.
 // See README.md for more details on running the full-featured local version.
 if (socket) {
+    // Listener for initial room data and role check
+    socket.on('roomData', (data) => {
+        console.log('Received roomData:', data);
+        Object.assign(roomState, data); // Update local state
+
+        // Update UI based on new state
+        populateStageMics(data.stageUsers);
+        const generalUsers = Object.values(data.users).filter(user => !data.stageUsers.some(su => su.id === user.id));
+        populateGeneralMics(generalUsers);
+        updateOnlineCount(data.onlineCount);
+
+        // Handle room settings display
+        updateRoomDisplay({ description: data.description, background: data.background });
+
+        // Check current user's role and toggle admin controls
+        const self = data.users.find(u => u.id === socket.id);
+        if (self) {
+            toggleAdminControls(self.isAdmin);
+        }
+    });
+
+    // Listener for when room settings are updated by an admin
+    socket.on('roomSettingsUpdated', (settings) => {
+        console.log('Received roomSettingsUpdated:', settings);
+        // Update local state
+        if (settings.description) roomState.description = settings.description;
+        if (settings.background) roomState.background = settings.background;
+        // Update the UI
+        updateRoomDisplay(settings);
+        showCustomAlert('تم تحديث إعدادات الغرفة!', 'info');
+    });
     // Event: Room state update (full sync)
     socket.on('roomStateUpdate', (newRoomState) => {
         console.log('Received room state update:', newRoomState);
@@ -100,6 +146,10 @@ socket.on('userJoined', (user) => {
     const generalUsers = Object.values(roomState.users).filter(u => !roomState.stageUsers.some(su => su.id === u.id));
     populateGeneralMics(generalUsers);
     showCustomAlert(`${user.username} دخل الغرفة.`, 'info');
+    // Play sound if it's not the current user joining their own room initially
+    if (user.id !== socket.id) {
+        playSound('welcomeAudio');
+    }
 });
 
 // Event: User left the room
@@ -117,6 +167,7 @@ socket.on('userLeft', (userId) => {
         populateGeneralMics(generalUsers);
         updateOnlineCount(Object.keys(roomState.users).length);
         showCustomAlert(`${user.username} غادر الغرفة.`, 'info');
+        playSound('userLeaveSound'); // Play user leave sound
     }
 });
 
@@ -139,8 +190,7 @@ socket.on('chatMessage', (message) => {
     addChatMessage(message);
     // Play new message sound if not from current user
     if (message.userId !== currentUser.id) {
-        const newMessageSound = document.getElementById('newMessageSound');
-        if (newMessageSound) newMessageSound.play().catch(e => console.warn('New message sound autoplay prevented:', e));
+        playSound('newMessageSound');
     }
 });
 
@@ -151,6 +201,7 @@ socket.on('privateMessage', (message) => {
     // For now, using addChatMessage for simplicity, but ideally a separate UI for private chats
     addChatMessage({ ...message, type: 'private' });
     showCustomAlert(`رسالة خاصة جديدة من ${message.senderUsername}`, 'info');
+    playSound('newMessageSound'); // Play sound for private messages too
 });
 
 // Event: Gift received
@@ -162,10 +213,9 @@ socket.on('giftReceived', (giftData) => {
         updateGiftCounterDisplay(currentUser.giftsReceived);
         updateUserBadgeNameDisplay(currentUser.username, calculateLevel(currentUser.xp), currentUser.giftsReceived);
         showCustomAlert(`تلقيت هدية ${giftData.giftType} من ${giftData.senderUsername}!`, 'success');
-        const giftSound = document.getElementById('giftSound');
-        if (giftSound) giftSound.play().catch(e => console.warn('Gift sound autoplay prevented:', e));
     }
     addChatMessage({ type: 'gift', senderUsername: giftData.senderUsername, recipientUsername: roomState.users[giftData.toUserId]?.username || 'الغرفة', giftType: giftData.giftType });
+    playSound('giftSound');
     showGiftAnimation(); // Visual animation
 });
 
@@ -346,6 +396,22 @@ export async function requestMicAscent(userId = currentUser.id) {
             socket.emit('requestMicAscent', { userId: currentUser.id, roomId: roomState.id });
         }
         showCustomAlert('تم إرسال طلب صعود المايك.', 'info');
+    }
+}
+
+/**
+ * Sends a request to update the room's settings. Only for Admins.
+ * @param {string} description - The new room description.
+ * @param {string} background - The URL for the new background image.
+ */
+export function updateRoomSettings(description, background) {
+    if (currentUser.role !== 'admin') {
+        showCustomAlert('ليس لديك صلاحية لتغيير إعدادات الغرفة.', 'error');
+        return;
+    }
+    if (socket) {
+        socket.emit('updateRoomSettings', { description, background, roomId: roomState.id });
+        showCustomAlert('تم إرسال الإعدادات الجديدة.', 'success');
     }
 }
 
@@ -804,6 +870,33 @@ document.addEventListener('DOMContentLoaded', () => {
             if (success) {
                 updateCoinBalance(newCoinBalance);
             }
+        });
+
+        // --- Game Logic Listeners ---
+        const playGameBtn = document.getElementById('play-game-btn-bottom');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const resetGameBtn = document.getElementById('reset-game-btn');
+        const boardElement = document.getElementById('tic-tac-toe-board');
+
+        playGameBtn.addEventListener('click', toggleGameContainer);
+
+        startGameBtn.addEventListener('click', () => {
+            socket.emit('game:start', { roomId: roomState.id });
+        });
+
+        resetGameBtn.addEventListener('click', () => {
+            socket.emit('game:reset', { roomId: roomState.id });
+        });
+
+        boardElement.addEventListener('click', (event) => {
+            if (event.target.classList.contains('cell')) {
+                const index = event.target.dataset.index;
+                socket.emit('game:move', { roomId: roomState.id, index });
+            }
+        });
+
+        socket.on('game:update', (gameState) => {
+            renderGameBoard(gameState);
         });
     }
 });

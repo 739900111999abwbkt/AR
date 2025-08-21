@@ -200,7 +200,14 @@ io.on('connection', (socket) => {
                 users: {}, // Will be populated below
                 stageUsers: roomData?.stageUsers || [], // Load initial stage users
                 moderators: roomData?.moderators || [],
-                chatMessages: [] // Will fetch recent messages
+                chatMessages: [], // Will fetch recent messages
+                gameState: {
+                    board: Array(9).fill(null),
+                    turn: 'X',
+                    players: { X: null, O: null },
+                    winner: null,
+                    isDraw: false,
+                }
             };
 
             // Fetch recent chat messages (e.g., last 50)
@@ -825,6 +832,132 @@ io.on('connection', (socket) => {
             console.error('Gift transaction failed:', error);
             socket.emit('giftResult', { success: false, message: error.toString() });
         }
+    });
+
+
+    // --- Game Logic (Tic-Tac-Toe) ---
+
+    const checkWinner = (board) => {
+        const lines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6]  // diagonals
+        ];
+        for (let i = 0; i < lines.length; i++) {
+            const [a, b, c] = lines[i];
+            if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                return board[a]; // Returns 'X' or 'O'
+            }
+        }
+        if (board.every(cell => cell !== null)) {
+            return 'draw';
+        }
+        return null; // No winner yet
+    };
+
+    socket.on('game:start', ({ roomId }) => {
+        const room = activeRooms[roomId];
+        if (!room) return;
+
+        // Initialize game state
+        room.gameState = {
+            board: Array(9).fill(null),
+            turn: 'X',
+            players: { X: null, O: null },
+            winner: null,
+            isDraw: false,
+        };
+
+        // Assign players (first two users in the room)
+        const usersInRoom = Object.keys(room.users);
+        if (usersInRoom.length >= 2) {
+            room.gameState.players.X = usersInRoom[0];
+            room.gameState.players.O = usersInRoom[1];
+        }
+
+        io.to(roomId).emit('game:update', room.gameState);
+        console.log(`Game started in room ${roomId}`);
+    });
+
+    socket.on('game:move', ({ roomId, index }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const { gameState } = room;
+
+        if (!gameState || gameState.winner || gameState.isDraw) return; // Game over or not started
+        if (userId !== gameState.players[gameState.turn]) return; // Not this player's turn
+        if (gameState.board[index] !== null) return; // Cell already taken
+
+        // Make the move
+        gameState.board[index] = gameState.turn;
+
+        // Check for winner
+        const winner = checkWinner(gameState.board);
+        if (winner) {
+            if (winner === 'draw') {
+                gameState.isDraw = true;
+            } else {
+                gameState.winner = winner; // 'X' or 'O'
+            }
+        } else {
+            // Switch turns
+            gameState.turn = gameState.turn === 'X' ? 'O' : 'X';
+        }
+
+        io.to(roomId).emit('game:update', gameState);
+    });
+
+    socket.on('game:reset', ({ roomId }) => {
+        const room = activeRooms[roomId];
+        if (!room || !room.gameState) return;
+
+        // Reset game state but keep players
+        room.gameState.board = Array(9).fill(null);
+        room.gameState.turn = 'X';
+        room.gameState.winner = null;
+        room.gameState.isDraw = false;
+
+        io.to(roomId).emit('game:update', room.gameState);
+        console.log(`Game reset in room ${roomId}`);
+    });
+
+
+    // --- Room Customization & Reactions ---
+    socket.on('updateRoomSettings', async ({ roomId, description, background }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        const requester = room?.users[userId];
+
+        if (!room || !requester || (requester.role !== 'admin' && requester.role !== 'moderator')) {
+            // Optional: emit an error back to the requester
+            socket.emit('error', { message: 'Authentication error or room not found.' });
+            return;
+        }
+
+        const updates = {};
+        if (description) {
+            room.description = description;
+            updates.description = description;
+        }
+        if (background) {
+            room.background = background;
+            updates.background = background;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            await updateRoomData(roomId, updates);
+            io.to(roomId).emit('roomSettingsUpdated', updates);
+            console.log(`Room ${roomId} settings updated by ${requester.username}:`, updates);
+        }
+    });
+
+    socket.on('room:reaction', ({ roomId, emoji }) => {
+        const userId = socketToUser[socket.id];
+        const room = activeRooms[roomId];
+        if (!room || !room.users[userId]) return;
+
+        // Broadcast the reaction to everyone in the room including the sender
+        io.to(roomId).emit('room:reaction', { userId, emoji });
     });
 
 
