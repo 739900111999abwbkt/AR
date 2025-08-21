@@ -835,6 +835,60 @@ io.on('connection', (socket) => {
     });
 
 
+    // --- User Profile Updates ---
+    socket.on('updateUserProfile', async ({ username, avatar, bio }) => {
+        const userId = socketToUser[socket.id];
+        if (!userId) {
+            socket.emit('error', { message: 'User not authenticated.' });
+            return;
+        }
+
+        // --- Find the user's room ---
+        let roomId = null;
+        for (const rId in activeRooms) {
+            if (activeRooms[rId].users[userId]) {
+                roomId = rId;
+                break;
+            }
+        }
+
+        if (!roomId) {
+            socket.emit('error', { message: 'User not found in any active room.' });
+            return;
+        }
+
+        const updates = {};
+        if (username && username.trim() !== '') {
+            updates.username = username.trim();
+        }
+        if (avatar) {
+            updates.avatar = avatar;
+        }
+        if (bio) {
+            updates.bio = bio;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            // 1. Update Firestore
+            await updateUserProfile(userId, updates);
+
+            // 2. Update in-memory state
+            const userInMemory = activeRooms[roomId].users[userId];
+            if (userInMemory) {
+                Object.assign(userInMemory, updates);
+            }
+
+            // 3. Broadcast update to all clients in the room
+            io.to(roomId).emit('userProfileUpdated', { userId, updates });
+
+            console.log(`User ${userId} updated their profile:`, updates);
+            socket.emit('profileUpdateResult', { success: true, message: 'تم تحديث ملفك الشخصي بنجاح!' });
+        } else {
+            socket.emit('profileUpdateResult', { success: false, message: 'لم يتم تقديم أي بيانات للتحديث.' });
+        }
+    });
+
+
     // --- Game Logic (Tic-Tac-Toe) ---
 
     const checkWinner = (board) => {

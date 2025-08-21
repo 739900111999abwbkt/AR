@@ -1105,6 +1105,29 @@
         </div>
     </div>
 
+    <!-- Edit Profile Popup -->
+    <div id="edit-profile-popup" class="popup">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">✏️ تعديل الملف الشخصي</h3>
+        <div class="w-full max-w-sm flex flex-col gap-4 text-right">
+            <div>
+                <label for="profile-username-input" class="block text-sm font-medium text-gray-400 mb-1">اسم المستخدم</label>
+                <input type="text" id="profile-username-input" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600" placeholder="أدخل اسمك الجديد...">
+            </div>
+            <div>
+                <label for="profile-avatar-input" class="block text-sm font-medium text-gray-400 mb-1">رابط الصورة الرمزية</label>
+                <input type="text" id="profile-avatar-input" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600" placeholder="https://example.com/avatar.png">
+            </div>
+            <div>
+                <label for="profile-bio-input" class="block text-sm font-medium text-gray-400 mb-1">النبذة التعريفية</label>
+                <textarea id="profile-bio-input" rows="3" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600" placeholder="اكتب نبذة عنك..."></textarea>
+            </div>
+        </div>
+        <div class="flex gap-4 mt-6">
+            <button id="save-profile-btn" class="button bg-green-600 hover:bg-green-700">حفظ التغييرات</button>
+            <button onclick="closePopup('edit-profile-popup')" class="button bg-gray-500 hover:bg-gray-600">إلغاء</button>
+        </div>
+    </div>
+
     <!-- Room Rules Popup -->
     <div id="room-rules-popup" class="popup">
         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">📋 قوانين الغرفة</h3>
@@ -1161,7 +1184,7 @@
             toggleDarkMode, assignModerator, reportUser, changeUsername,
             requestMicAscent, requestMicDescent, // Mic stage control
             kickUser, banUser, toggleUserMute, // Moderation actions
-            transferUserMic, preventMicAscent, updateRoomSettings // New moderation actions
+            transferUserMic, preventMicAscent, updateRoomSettings, saveProfile // New moderation actions
         } from './room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
@@ -1196,7 +1219,7 @@
             toggleChatBox, toggleFloatingPanels, toggleGiftPanel,
             populateStageMics, populateGeneralMics,
             updateUserInfoPopup, showCustomAlert, updateOnlineCount, updateStayTimer,
-            showRoomRulesPopup, showExitConfirmPopup // New popups
+            showRoomRulesPopup, showExitConfirmPopup, showEditProfilePopup, updateUserDisplay // New popups
         } from './room_ui.js';
 
         window.showUserInfoPopup = showUserInfoPopup;
@@ -1252,7 +1275,27 @@
 
         // Event listeners for "More Options" panel buttons
         document.getElementById('settings-btn').addEventListener('click', () => showCustomAlert('الإعدادات (قيد التطوير)', 'info'));
-        document.getElementById('edit-profile-btn').addEventListener('click', () => showCustomAlert('تعديل الملف الشخصي (قيد التطوير)', 'info'));
+
+        // New event listener for the "Edit Profile" button
+        document.getElementById('edit-profile-btn').addEventListener('click', () => {
+            showEditProfilePopup();
+        });
+
+        // New event listener for the "Save Profile" button in the popup
+        document.getElementById('save-profile-btn').addEventListener('click', () => {
+            const newUsername = document.getElementById('profile-username-input').value;
+            const newAvatar = document.getElementById('profile-avatar-input').value;
+            const newBio = document.getElementById('profile-bio-input').value;
+
+            saveProfile({
+                username: newUsername,
+                avatar: newAvatar,
+                bio: newBio
+            });
+
+            closePopup('edit-profile-popup');
+        });
+
         document.getElementById('change-background-btn').addEventListener('click', () => showCustomAlert('تغيير الخلفية (قيد التطوير)', 'info'));
         document.getElementById('copy-room-link-btn').addEventListener('click', () => {
             // This will copy the current room URL
