@@ -825,3 +825,107 @@ export function updateCoinBalance(balance) {
         coinBalanceElement.textContent = balance;
     }
 }
+
+/**
+ * Toggles the visibility of the game container.
+ */
+export function toggleGameContainer() {
+    const gameContainer = document.getElementById('game-container');
+    if (gameContainer) {
+        gameContainer.classList.toggle('hidden');
+    }
+}
+
+/**
+ * Renders the Tic-Tac-Toe game board and status.
+ * @param {Object} gameState - The current state of the game.
+ */
+export function renderGameBoard(gameState) {
+    const boardElement = document.getElementById('tic-tac-toe-board');
+    const statusElement = document.getElementById('game-status');
+    if (!boardElement || !statusElement) return;
+
+    boardElement.innerHTML = ''; // Clear board
+
+    // Render cells
+    gameState.board.forEach((cell, index) => {
+        const cellElement = document.createElement('div');
+        cellElement.className = 'cell';
+        cellElement.dataset.index = index;
+        if (cell) {
+            cellElement.textContent = cell;
+            cellElement.classList.add(cell); // 'X' or 'O'
+        }
+        boardElement.appendChild(cellElement);
+    });
+
+    // Update status
+    if (gameState.winner) {
+        statusElement.textContent = `🎉 اللاعب ${gameState.winner} فاز!`;
+    } else if (gameState.isDraw) {
+        statusElement.textContent = '🤝 تعادل!';
+    } else {
+        statusElement.textContent = `دور اللاعب: ${gameState.turn}`;
+    }
+}
+
+/**
+ * Plays a sound from an <audio> element by its ID.
+ * Handles potential browser autoplay restrictions gracefully.
+ * @param {string} soundId - The ID of the <audio> element to play.
+ */
+export function playSound(soundId) {
+    const soundElement = document.getElementById(soundId);
+    if (soundElement) {
+        // Rewind the sound to the beginning in case it's already playing
+        soundElement.currentTime = 0;
+        // Play the sound
+        soundElement.play().catch(error => {
+            // This catch block handles cases where the browser blocks autoplay
+            console.warn(`Could not play sound '${soundId}':`, error.message);
+        });
+    } else {
+        console.warn(`Sound element with ID '${soundId}' not found.`);
+    }
+}
+
+/**
+ * Updates the room's background image and description display.
+ * @param {object} settings - An object containing { description, background }.
+ */
+export function updateRoomDisplay(settings) {
+    const roomDescriptionElement = document.getElementById('room-description');
+    const roomDescInput = document.getElementById('room-desc-input');
+    const roomBgInput = document.getElementById('room-bg-input');
+
+    if (settings.description) {
+        if (roomDescriptionElement) {
+            roomDescriptionElement.textContent = settings.description;
+        }
+        if (roomDescInput && document.activeElement !== roomDescInput) {
+            roomDescInput.value = settings.description;
+        }
+    }
+
+    if (settings.background) {
+        document.body.style.backgroundImage = `url('${settings.background}')`;
+        if (roomBgInput && document.activeElement !== roomBgInput) {
+            roomBgInput.value = settings.background;
+        }
+    }
+}
+
+/**
+ * Shows or hides the admin-only room settings panel.
+ * @param {boolean} isAdmin - True if the current user is an admin.
+ */
+export function toggleAdminControls(isAdmin) {
+    const adminSettingsPanel = document.getElementById('more-options-panel');
+    if (adminSettingsPanel) {
+        // We target the specific part of the panel related to room settings
+        const roomSettingsSection = adminSettingsPanel.querySelector('h3:first-of-type').parentElement;
+        if (roomSettingsSection) {
+            roomSettingsSection.style.display = isAdmin ? 'block' : 'none';
+        }
+    }
+}

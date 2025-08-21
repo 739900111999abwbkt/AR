@@ -30,8 +30,9 @@ console.log('Firebase Client SDK initialized.');
 // NOTE: The socket connection is disabled to allow the project to run as a static site
 // on platforms like GitHub Pages. For full functionality, you must run the local server.
 // See README.md for more details.
-// export const socket = io();
-export const socket = null; // Set socket to null so other parts of the app don't break
+export const socket = io();
+window.socket = socket; // Expose socket globally for other scripts
+// export const socket = null; // Set socket to null so other parts of the app don't break
 
 // --- Current User State ---
 // هذا الكائن سيحتوي على بيانات المستخدم المصادق عليه
