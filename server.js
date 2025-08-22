@@ -401,8 +401,28 @@ io.on('connection', (socket) => {
         io.to(userSockets[recipientId]).emit('privateMessage', message);
 
         // Optionally, save private messages to a separate collection or within user profiles
-        // await db.collection('privateMessages').add(message); // Example: if you want a global private message collection
+        const threadId = [senderId, recipientId].sort().join('_');
+        await db.collection('privateMessages').doc(threadId).collection('messages').add(message);
         console.log(`Private message from ${sender.username} to ${recipient.username}: ${text}`);
+    });
+
+    socket.on('getPrivateMessageHistory', async ({ partnerId }) => {
+        const userId = socketToUser[socket.id];
+        if (!userId || !partnerId) return;
+
+        const threadId = [userId, partnerId].sort().join('_');
+        const messagesSnapshot = await db.collection('privateMessages').doc(threadId).collection('messages')
+            .orderBy('timestamp', 'desc').limit(50).get();
+
+        const history = messagesSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                timestamp: data.timestamp ? data.timestamp.toDate().getTime() : Date.now()
+            };
+        }).reverse();
+
+        socket.emit('privateMessageHistory', { partnerId, history });
     });
 
     // --- WebRTC Signaling ---
@@ -788,6 +808,15 @@ io.on('connection', (socket) => {
         const senderRef = db.collection('users').doc(senderId);
 
         try {
+            const giftLog = {
+                senderId,
+                recipientId,
+                giftId,
+                giftName: gift.name,
+                price: gift.price,
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
+            };
+
             await db.runTransaction(async (transaction) => {
                 const senderDoc = await transaction.get(senderRef);
                 if (!senderDoc.exists) throw "Sender does not exist.";
@@ -818,6 +847,10 @@ io.on('connection', (socket) => {
                         transaction.update(recipientRef, { giftsReceived: newGiftsReceived, xp: newRecipientXP });
                     }
                 }
+
+                // 4. Log the gift transaction
+                const giftLogRef = db.collection('gifts').doc(); // Create a new document for the log
+                transaction.set(giftLogRef, giftLog);
             });
 
             // If transaction is successful, notify clients
@@ -834,6 +867,34 @@ io.on('connection', (socket) => {
         }
     });
 
+
+    socket.on('getGiftLog', async () => {
+        const userId = socketToUser[socket.id];
+        if (!userId) return;
+
+        try {
+            const sentGiftsQuery = db.collection('gifts').where('senderId', '==', userId).orderBy('timestamp', 'desc').limit(50);
+            const receivedGiftsQuery = db.collection('gifts').where('recipientId', '==', userId).orderBy('timestamp', 'desc').limit(50);
+
+            const [sentSnapshot, receivedSnapshot] = await Promise.all([
+                sentGiftsQuery.get(),
+                receivedGiftsQuery.get()
+            ]);
+
+            const sentGifts = sentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'sent' }));
+            const receivedGifts = receivedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'received' }));
+
+            const fullLog = [...sentGifts, ...receivedGifts]
+                .sort((a, b) => b.timestamp - a.timestamp) // Sort combined log by timestamp
+                .slice(0, 100); // Limit to a reasonable number
+
+            socket.emit('giftLogUpdate', fullLog);
+
+        } catch (error) {
+            console.error('Error fetching gift log:', error);
+            socket.emit('error', { message: 'Failed to fetch gift log.' });
+        }
+    });
 
     // --- User Profile Updates ---
     socket.on('updateUserProfile', async ({ username, avatar, bio }) => {
@@ -1068,6 +1129,29 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('pinnedMessageUpdate', messageToPin);
 
         console.log(`Message pinned in room ${roomId} by ${requester.username}: ${messageToPin}`);
+    });
+
+    socket.on('reportUser', async ({ targetUserId, reporterId, reason, roomId }) => {
+        if (!targetUserId || !reporterId || !reason) {
+            socket.emit('error', { message: 'طلب الإبلاغ غير مكتمل.' });
+            return;
+        }
+
+        try {
+            await db.collection('reports').add({
+                targetUserId,
+                reporterId,
+                reason,
+                roomId,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                status: 'new' // 'new', 'in-review', 'resolved'
+            });
+            socket.emit('reportResult', { success: true, message: 'تم استلام بلاغك، شكراً لك.' });
+            console.log(`User ${reporterId} reported user ${targetUserId} in room ${roomId}. Reason: ${reason}`);
+        } catch (error) {
+            console.error('Error saving user report:', error);
+            socket.emit('reportResult', { success: false, message: 'حدث خطأ أثناء إرسال البلاغ.' });
+        }
     });
 
     // --- Server Listener ---

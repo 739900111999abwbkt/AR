@@ -1130,6 +1130,17 @@
     </div>
 
     <!-- Room Rules Popup -->
+    <div id="gift-log-popup" class="popup">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">📜 سجل الهدايا</h3>
+        <div id="gift-log-list" class="w-full max-w-md text-right h-80 overflow-y-auto bg-gray-800 p-4 rounded-lg">
+            <!-- Gift log entries will be populated here -->
+            <p class="text-gray-400">لا توجد هدايا في سجلك...</p>
+        </div>
+        <div class="mt-6">
+            <button onclick="closePopup('gift-log-popup')" class="button bg-gray-500 hover:bg-gray-600">إغلاق</button>
+        </div>
+    </div>
+
     <div id="room-rules-popup" class="popup">
         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">📋 قوانين الغرفة</h3>
         <div class="text-left text-gray-700 dark:text-gray-200 mb-6 max-h-64 overflow-y-auto">
@@ -1185,7 +1196,7 @@
             toggleDarkMode, assignModerator, reportUser, changeUsername,
             requestMicAscent, requestMicDescent, // Mic stage control
             kickUser, banUser, toggleUserMute, // Moderation actions
-            transferUserMic, preventMicAscent, updateRoomSettings, saveProfile, pinMessage // New moderation actions
+            transferUserMic, preventMicAscent, updateRoomSettings, saveProfile, pinMessage, getGiftLog // New moderation actions
         } from './room_logic.js';
 
         // Expose functions to global scope for inline onclick/onchange attributes
@@ -1326,7 +1337,9 @@
                 console.error('Failed to copy room link: ', err);
             });
         });
-        document.getElementById('gift-log-btn').addEventListener('click', () => showCustomAlert('سجل الهدايا (قيد التطوير)', 'info'));
+        document.getElementById('gift-log-btn').addEventListener('click', () => {
+            getGiftLog(); // This will fetch the log and the UI function will display it
+        });
         document.getElementById('report-user-btn').addEventListener('click', () => showCustomAlert('الإبلاغ عن مستخدم (قيد التطوير)', 'info'));
         document.getElementById('room-rules-btn').addEventListener('click', showRoomRulesPopup); // Show room rules popup
         document.getElementById('send-announcement-btn').addEventListener('click', () => showCustomAlert('إرسال إشعار للمستخدمين (قيد التطوير)', 'info'));

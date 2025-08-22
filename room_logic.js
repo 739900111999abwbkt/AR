@@ -333,10 +333,47 @@ socket.on('profileUpdateResult', ({ success, message }) => {
     showCustomAlert(message, success ? 'success' : 'error');
 });
 
+// Event: Listen for incoming private message history
+socket.on('privateMessageHistory', ({ partnerId, history }) => {
+    displayPrivateMessageHistory(partnerId, history);
+});
+
+import {
+    showCustomAlert, showCustomConfirm,
+    updateMicSpeakingStatus, addChatMessage,
+    populateStageMics, populateGeneralMics,
+    updateCurrentUserDisplay, updateOnlineCount, updateStayTimer,
+    showGiftAnimation, updateHonorBoard, updateTopUsersPanel,
+    updateModeratorList, logUserEntryExit, closePopup,
+    updateXPDisplay, updateLevelDisplay, updateGiftCounterDisplay, updateUserBadgeNameDisplay,
+    toggleChatBox, toggleFloatingPanels, toggleGiftPanel, showRoomRulesPopup, showExitConfirmPopup,
+    populateGiftPanel, updateCoinBalance,
+    toggleGameContainer, renderGameBoard,
+    updateRoomDisplay, toggleAdminControls, playSound, updateUserDisplay, showAnnouncement,
+    displayPrivateMessageHistory, displayGiftLog // Import new UI function
+} from './room_ui.js';
+
 // Event: Listen for room-wide announcements
 socket.on('announcement', (data) => {
     showAnnouncement(data);
 });
+
+socket.on('giftLogUpdate', (log) => {
+    displayGiftLog(log);
+});
+
+socket.on('reportResult', ({ success, message }) => {
+    showCustomAlert(message, success ? 'success' : 'error');
+});
+}
+
+/**
+ * Requests the user's gift log from the server.
+ */
+export function getGiftLog() {
+    if (socket) {
+        socket.emit('getGiftLog');
+    }
 }
 
 
@@ -458,6 +495,16 @@ export function makeAnnouncement(text) {
 export function pinMessage(message) {
     if (socket) {
         socket.emit('pinMessage', { message, roomId: roomState.id });
+    }
+}
+
+/**
+ * Requests the private message history with another user.
+ * @param {string} partnerId - The ID of the other user in the conversation.
+ */
+export function getPrivateMessageHistory(partnerId) {
+    if (socket) {
+        socket.emit('getPrivateMessageHistory', { partnerId });
     }
 }
 
