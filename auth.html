@@ -435,95 +435,25 @@
         <!-- Content will be injected by JavaScript -->
     </div>
 
-    <div class="auth-panel panel">
+    <div class="auth-panel panel text-center">
         <div class="logo">AirChat</div>
+        <p class="text-xl text-gray-400 mb-8">نسخة تجريبية للاعب واحد</p>
 
-        <div class="form-toggle">
-            <button id="login-tab" class="active">تسجيل الدخول</button>
-            <button id="register-tab">التسجيل</button>
+        <div class="w-full max-w-xs mx-auto">
+            <label for="username-input" class="block text-lg font-medium text-gray-300 mb-2">أدخل اسمك</label>
+            <input type="text" id="username-input" class="input text-center" placeholder="اللاعب" value="اللاعب">
+
+            <button id="guest-login-btn" class="btn btn-success w-full mt-6">
+                <span>🚀 دخول كضيف</span>
+            </button>
         </div>
 
-        <!-- Login Form -->
-        <form id="login-form" class="form-container">
-            <div class="input-group">
-                <label for="login-email">البريد الإلكتروني</label>
-                <input type="email" id="login-email" placeholder="أدخل بريدك الإلكتروني" required>
-                <i class="fas fa-envelope input-icon"></i>
-            </div>
-            <div class="input-group">
-                <label for="login-password">كلمة المرور</label>
-                <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required>
-                <i class="fas fa-lock input-icon"></i>
-            </div>
-            <button type="submit" id="login-btn" class="btn btn-success w-full">
-                <span class="loading-spinner"></span>
-                <span>تسجيل الدخول</span>
-            </button>
-            <div class="form-links">
-                <a href="#" id="forgot-password-link">نسيت كلمة المرور؟</a>
-            </div>
-            <div class="social-login">
-                <p>أو سجل الدخول باستخدام:</p>
-                <div class="social-buttons">
-                    <button type="button" class="social-button google">
-                        <i class="fab fa-google"></i>
-                    </button>
-                    <button type="button" class="social-button facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </button>
-                    <button type="button" class="social-button apple">
-                        <i class="fab fa-apple"></i>
-                    </button>
-                </div>
-            </div>
-        </form>
-
-        <!-- Register Form -->
-        <form id="register-form" class="form-container hidden">
-            <div class="input-group">
-                <label for="register-username">اسم المستخدم</label>
-                <input type="text" id="register-username" placeholder="اختر اسم المستخدم" required>
-                <i class="fas fa-user input-icon"></i>
-            </div>
-            <div class="input-group">
-                <label for="register-email">البريد الإلكتروني</label>
-                <input type="email" id="register-email" placeholder="أدخل بريدك الإلكتروني" required>
-                <i class="fas fa-envelope input-icon"></i>
-            </div>
-            <div class="input-group">
-                <label for="register-password">كلمة المرور</label>
-                <input type="password" id="register-password" placeholder="اختر كلمة مرور قوية" required>
-                <i class="fas fa-lock input-icon"></i>
-            </div>
-            <div class="input-group">
-                <label for="register-confirm-password">تأكيد كلمة المرور</label>
-                <input type="password" id="register-confirm-password" placeholder="أعد إدخال كلمة المرور" required>
-                <i class="fas fa-lock input-icon"></i>
-            </div>
-            <button type="submit" id="register-btn" class="btn btn-purple w-full">
-                <span class="loading-spinner"></span>
-                <span>التسجيل الآن</span>
-            </button>
-            <div class="social-login">
-                <p>أو سجل باستخدام:</p>
-                <div class="social-buttons">
-                    <button type="button" class="social-button google">
-                        <i class="fab fa-google"></i>
-                    </button>
-                    <button type="button" class="social-button facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </button>
-                    <button type="button" class="social-button apple">
-                        <i class="fab fa-apple"></i>
-                    </button>
-                </div>
-            </div>
-        </form>
+        <p class="text-sm text-gray-500 mt-10">
+            لا يلزم تسجيل دخول. سيتم حفظ تقدمك في متصفحك.
+        </p>
     </div>
 
-    <!-- Main Application Logic (Firebase auth, global utils) -->
-    <script type="module" src="./js/main.js"></script>
     <!-- Auth Specific Logic -->
-    <script type="module" src="./js/auth_logic.js"></script>
+    <script type="module" src="auth_logic.js"></script>
 </body>
 </html>
