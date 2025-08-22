@@ -79,12 +79,43 @@ export function showCustomConfirm(message, inputType = 'confirm') {
 }
 
 /**
- * Calculates a user's level based on their XP.
- * @param {number} xp - The user's total experience points.
+ * Calculates user level based on XP.
+ * This version uses simple thresholds.
+ * @param {number} xp - User's experience points.
  * @returns {number} The calculated level.
  */
-export function calculateLevel(xp) {
-    // This formula can be adjusted to change the leveling curve.
-    // This example provides a simple square root progression.
-    return Math.floor(Math.sqrt(xp / 100)) + 1;
+export function calculateLevel(xp = 0) {
+    if (xp >= 500) return 5;
+    if (xp >= 300) return 4;
+    if (xp >= 200) return 3;
+    if (xp >= 100) return 2;
+    return 1;
+}
+
+/**
+ * Gets a badge emoji based on user level.
+ * @param {number} level - User's level.
+ * @returns {string} Emoji badge.
+ */
+export function getLevelBadge(level = 1) {
+    switch (level) {
+        case 1: return "🥉";
+        case 2: return "🥈";
+        case 3: return "🥇";
+        case 4: return "🏅";
+        case 5: return "🎖️";
+        default: return "";
+    }
+}
+
+/**
+ * Gets a badge emoji based on gifts received.
+ * @param {number} gifts - Number of gifts received.
+ * @returns {string} Emoji badge.
+ */
+export function getUserBadgeByGifts(gifts = 0) {
+    if (gifts >= 20) return "👑";
+    if (gifts >= 10) return "🏆";
+    if (gifts >= 5) return "🎉";
+    return "";
 }
