@@ -5,7 +5,7 @@
  * handling popups, and visual effects. Now updated to handle WebRTC speaking indicators.
  */
 
-// Import necessary modules from main.js and utils.js
+import { getPrivateMessageHistory } from './room_logic.js';
 import { showCustomAlert, showCustomConfirm, socket, currentUser } from './main.js';
 
 // --- UI Element References ---
@@ -379,6 +379,7 @@ export function showUserInfoPopup(user) {
             <button onclick="sendPrivateMessagePopup('${user.userId}', '${user.username}')" class="button bg-blue-600 hover:bg-blue-700">✉️ رسالة خاصة</button>
             <button onclick="sendGiftPopup('${user.userId}', '${user.username}')" class="button bg-pink-600 hover:bg-pink-700">🎁 إرسال هدية</button>
             <button onclick="increaseReaction('${user.userId}')" class="button bg-red-500 hover:bg-red-600">🔥 تفاعل</button>
+            <button onclick="reportUser('${user.userId}')" class="button bg-orange-500 hover:bg-orange-600"><i class="fas fa-exclamation-triangle"></i> تبليغ</button>
             ${moderationButtons}
             <button onclick="closePopup('${popupId}')" class="button bg-gray-500 hover:bg-gray-600">❌ إغلاق</button>
         </div>
@@ -675,8 +676,7 @@ export function sendPrivateMessagePopup(recipientId, recipientUsername) {
     popup.innerHTML = `
         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100">✉️ دردشة خاصة مع ${recipientUsername}</h3>
         <div id="private-messages-${recipientId}" class="chat-messages-container w-full h-64 overflow-y-auto bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
-            <!-- Private messages will be loaded here -->
-            <p class="text-gray-500 dark:text-gray-400 text-center">ابدأ محادثة...</p>
+            <p class="text-gray-500 dark:text-gray-400 text-center">جارٍ تحميل الرسائل...</p>
         </div>
         <div class="flex w-full gap-2">
             <input type="text" id="private-msg-input-${recipientId}" placeholder="اكتب رسالة..." class="flex-grow"/>
@@ -687,45 +687,121 @@ export function sendPrivateMessagePopup(recipientId, recipientUsername) {
     document.body.appendChild(popup);
     popup.classList.add('show');
 
-    // Add event listener for sending private message
-    document.getElementById(`send-private-msg-btn-${recipientId}`).addEventListener('click', () => {
-        const input = document.getElementById(`private-msg-input-${recipientId}`);
-        const messageText = input.value.trim();
+    const messageInput = document.getElementById(`private-msg-input-${recipientId}`);
+    const sendMessageBtn = document.getElementById(`send-private-msg-btn-${recipientId}`);
+
+    const sendMessageAction = () => {
+        const messageText = messageInput.value.trim();
         if (messageText) {
-            socket.emit('sendPrivateMessage', { recipientId, messageText });
-            input.value = '';
+            // The logic to emit the socket event is in room_logic.js
+            sendPrivateMessage(recipientId, messageText);
+            messageInput.value = '';
+        }
+    };
+
+    sendMessageBtn.addEventListener('click', sendMessageAction);
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessageAction();
         }
     });
 
-    // Store reference to the private chat window
+    // Store reference to the private chat window's message container
     privateChatWindows[recipientId] = popup.querySelector(`#private-messages-${recipientId}`);
 
-    // Load existing private messages (placeholder - needs backend API for history)
-    // For now, new messages will appear here.
+    // Request message history from the server
+    getPrivateMessageHistory(recipientId);
 }
 
 /**
- * Adds a private message to the correct private chat window.
- * @param {Object} message - Private message object.
+ * Renders the entire message history for a private chat.
+ * @param {string} partnerId - The ID of the other user in the conversation.
+ * @param {Array<Object>} history - An array of message objects.
  */
-export function addPrivateChatMessage(message) {
-    const targetUserId = message.senderId === currentUser.id ? message.recipientId : message.senderId;
-    const chatWindow = privateChatWindows[targetUserId];
+export function displayPrivateMessageHistory(partnerId, history) {
+    const chatWindow = privateChatWindows[partnerId];
+    if (!chatWindow) return;
+
+    chatWindow.innerHTML = ''; // Clear the "Loading..." message
+    if (!history || history.length === 0) {
+        chatWindow.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">لا توجد رسائل سابقة. ابدأ محادثة!</p>';
+        return;
+    }
+
+    history.forEach(message => addPrivateChatMessage(message, true));
+}
+
+
+/**
+ * Adds a single private message to the correct private chat window.
+ * @param {Object} message - Private message object.
+ * @param {boolean} [isHistory=false] - True if the message is part of a history load, to prevent notifications.
+ */
+export function addPrivateChatMessage(message, isHistory = false) {
+    const partnerId = message.senderId === currentUser.id ? message.recipientId : message.senderId;
+    const chatWindow = privateChatWindows[partnerId];
 
     if (chatWindow) {
         const msgDiv = document.createElement('div');
-        msgDiv.className = 'chat-message p-2 rounded-lg mb-1 max-w-full break-words';
-        msgDiv.classList.add(message.senderId === currentUser.id ? 'bg-green-100' : 'bg-purple-100'); // Different colors for sent/received
-        msgDiv.classList.add('dark:bg-gray-600', 'dark:text-gray-100');
+        const isMyMessage = message.senderId === currentUser.id;
 
-        const senderName = message.senderId === currentUser.id ? 'أنت' : message.senderUsername;
+        msgDiv.className = `chat-message p-2 rounded-lg mb-1 max-w-xs break-words ${isMyMessage ? 'bg-blue-100 dark:bg-blue-800 self-end' : 'bg-gray-200 dark:bg-gray-600 self-start'}`;
+
+        const senderName = isMyMessage ? 'أنت' : message.senderUsername;
         msgDiv.innerHTML = `<strong>${senderName}:</strong> ${filterBadWords(message.text)}`;
+
+        // If it's the first message, clear the placeholder text
+        if (chatWindow.querySelector('p')) {
+            chatWindow.innerHTML = '';
+        }
+
         chatWindow.appendChild(msgDiv);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     } else {
-        // If private chat window is not open, show a toast notification
-        showToast(`رسالة جديدة من ${message.senderUsername}`, 'info');
+        // If chat window is not open and it's not a history message, show a toast
+        if (!isHistory) {
+            showToast(`رسالة جديدة من ${message.senderUsername}`, 'info');
+        }
     }
+}
+
+/**
+ * Displays the gift log in its popup.
+ * @param {Array<Object>} log - An array of gift log entries.
+ */
+export function displayGiftLog(log) {
+    const logList = document.getElementById('gift-log-list');
+    const popup = document.getElementById('gift-log-popup');
+    if (!logList || !popup) return;
+
+    logList.innerHTML = ''; // Clear previous entries
+    if (!log || log.length === 0) {
+        logList.innerHTML = '<p class="text-gray-400">لا توجد هدايا في سجلك.</p>';
+    } else {
+        log.forEach(entry => {
+            const logItem = document.createElement('div');
+            logItem.className = 'p-2 border-b border-gray-700 flex justify-between items-center';
+
+            const date = new Date(entry.timestamp.seconds * 1000).toLocaleString();
+            let text = '';
+            if (entry.type === 'sent') {
+                text = `<span class="text-red-400">أرسلت</span> ${entry.giftName} 🎁 إلى ${entry.recipientId}`;
+            } else {
+                text = `<span class="text-green-400">استلمت</span> ${entry.giftName} 🎁 من ${entry.senderId}`;
+            }
+
+            logItem.innerHTML = `
+                <div>
+                    <p>${text}</p>
+                    <p class="text-xs text-gray-500">${date}</p>
+                </div>
+                <span class="font-bold text-yellow-400">${entry.price} 🪙</span>
+            `;
+            logList.appendChild(logItem);
+        });
+    }
+
+    popup.classList.add('show');
 }
 
 /**
