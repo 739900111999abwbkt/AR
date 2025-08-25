@@ -8,6 +8,8 @@ import { StorageManager } from './storage.js';
 import { initializeAppState, currentUser, roomState } from '../main.js';
 import * as roomLogic from '../room_logic.js';
 import * as roomUI from '../room_ui.js';
+import { showCustomConfirm } from './utils.js';
+import { TicTacToeGame } from './game.js';
 
 // --- State Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -39,14 +41,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Now that the state is ready, set up all the event listeners.
     setupEventListeners();
+
+    // Grant XP for time spent in the room
+    setInterval(() => {
+        if (currentUser) {
+            currentUser.xp += 1; // 1 XP per minute
+            StorageManager.saveUser(currentUser);
+            // We need to update the display to show the new XP and potential level up
+            roomUI.updateCurrentUserDisplay(currentUser);
+            console.log(`User ${currentUser.username} gained 1 XP for time spent. Total XP: ${currentUser.xp}`);
+        }
+    }, 60000); // 60,000 milliseconds = 1 minute
 });
 
 
 // --- Event Listeners Setup ---
 function setupEventListeners() {
+    const game = new TicTacToeGame();
+
     // Bottom Controls
     document.getElementById('send-gift-btn-bottom').addEventListener('click', () => roomUI.togglePanel('gift-panel-container'));
     document.getElementById('show-panels-btn-bottom').addEventListener('click', () => roomUI.togglePanel('floating-panels-container'));
+    document.getElementById('play-game-btn-bottom').addEventListener('click', () => {
+        roomUI.toggleGameContainer();
+        // Render the initial state when opening
+        roomUI.renderGameBoard(game.getState());
+    });
     document.getElementById('exit-room-btn-bottom').addEventListener('click', () => {
          if (confirm('هل أنت متأكد من الخروج؟')) {
             window.location.href = 'auth.html';
@@ -67,6 +87,12 @@ function setupEventListeners() {
 
     document.getElementById('copy-room-link-btn').addEventListener('click', roomLogic.copyRoomLink);
     document.getElementById('toggle-music-btn').addEventListener('click', roomLogic.toggleMusic);
+    document.getElementById('make-announcement-btn').addEventListener('click', async () => {
+        const text = await showCustomConfirm("أدخل نص الإعلان:", 'input');
+        if (text) {
+            roomLogic.makeAnnouncement(text);
+        }
+    });
 
     // Profile Edit Popup
     document.getElementById('save-profile-btn').addEventListener('click', () => {
@@ -86,6 +112,27 @@ function setupEventListeners() {
         } else {
             roomUI.showCustomAlert('الرجاء اختيار هدية أولاً.', 'warning');
         }
+    });
+
+    // Game Listeners
+    document.getElementById('tic-tac-toe-board').addEventListener('click', (event) => {
+        if (event.target.classList.contains('cell')) {
+            const index = parseInt(event.target.dataset.index, 10);
+            if (game.makeMove(index)) {
+                roomUI.renderGameBoard(game.getState());
+            }
+        }
+    });
+
+    document.getElementById('start-game-btn').addEventListener('click', () => {
+        game.reset();
+        roomUI.renderGameBoard(game.getState());
+    });
+
+    document.getElementById('reset-game-btn').addEventListener('click', () => {
+        game.reset();
+        console.log("Game state after reset:", game.getState());
+        roomUI.renderGameBoard(game.getState());
     });
 
     // Make closePopup globally accessible for inline HTML onclick attributes
