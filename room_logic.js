@@ -10,7 +10,8 @@ import {
     updateCurrentUserDisplay,
     updateRoomDisplay,
     showGiftAnimation,
-    playSound
+    playSound,
+    showAnnouncement
 } from './room_ui.js';
 import { currentUser, roomState } from './main.js';
 import { StorageManager } from './js/storage.js';
@@ -51,6 +52,16 @@ export function saveProfile(profileData) {
     StorageManager.saveUser(currentUser);
     updateCurrentUserDisplay(currentUser); // Update all UI instances
     showCustomAlert('تم تحديث ملفك الشخصي بنجاح!', 'success');
+}
+
+/**
+ * Triggers the display of a room-wide announcement.
+ * @param {string} text - The announcement text.
+ */
+export function makeAnnouncement(text) {
+    // In a real app, this would send an event to the server.
+    // Here, we just directly call the UI function.
+    showAnnouncement(text);
 }
 
 /**
